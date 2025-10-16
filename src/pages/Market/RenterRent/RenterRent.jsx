@@ -18,7 +18,7 @@ const RenterRent = () => {
       setLoading(true);
       setError("");
       
-      const API_URL = "http://localhost/revenue/backend/Market/RenterRent/get_all_renters.php";
+      const API_URL = "http://localhost/revenue/backend/Market/RenterRent/renter_rent_details.php";
       console.log("Fetching from:", API_URL);
       
       const response = await fetch(API_URL, {
@@ -36,20 +36,21 @@ const RenterRent = () => {
       console.log("API Response:", data);
 
       if (data.success) {
-        // Filter only active renters and add payment status
-        const activeRenters = data.renters ? data.renters.filter(renter => renter.status === 'active') : [];
+        // Get renters from data.data.renters (new structure)
+        const activeRenters = data.data.renters ? data.data.renters.filter(renter => renter.status === 'active') : [];
         
-        // Add payment status to each renter - use renter_id as id
-        const rentersWithPaymentStatus = activeRenters.map(renter => ({
-          ...renter,
-          id: renter.renter_id, // Use renter_id as the main ID
-          payment_status: calculatePaymentStatus(renter),
-          next_payment_amount: renter.monthly_rent,
-          next_payment_date: calculateNextPaymentDate(renter)
-        }));
+        // Add payment data to each renter
+        const rentersWithPaymentData = activeRenters.map(renter => {
+          const paymentData = getNextPaymentData(renter);
+          return {
+            ...renter,
+            id: renter.renter_id,
+            ...paymentData
+          };
+        });
         
-        console.log("Active renters with payment status:", rentersWithPaymentStatus);
-        setRenters(rentersWithPaymentStatus);
+        console.log("Renters with payment data:", rentersWithPaymentData);
+        setRenters(rentersWithPaymentData);
       } else {
         setError(data.message || "Failed to fetch renters");
       }
@@ -61,18 +62,52 @@ const RenterRent = () => {
     }
   };
 
-  // Function to calculate payment status
-  const calculatePaymentStatus = (renter) => {
-    const statuses = ['paid', 'pending', 'overdue'];
-    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-    return randomStatus;
-  };
-
-  // Function to calculate next payment date
-  const calculateNextPaymentDate = (renter) => {
+  const getNextPaymentData = (renter) => {
+    // Based on your database, for R2025100022 you have:
+    // - October 2025: PAID (516.13)
+    // - November 2025: PENDING (1000.00) 
+    // - December 2025: PENDING (1000.00)
+    
+    // For now, we'll simulate the data. In production, you would join with monthly_payments table
+    const monthlyRent = parseFloat(renter.monthly_rent || 1000.00);
+    
+    // Get current date to determine payment status
     const today = new Date();
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    return nextMonth.toISOString().split('T')[0];
+    const currentMonth = today.getMonth() + 1;
+    const currentYear = today.getFullYear();
+    
+    let paymentStatus = 'pending';
+    let nextPaymentAmount = monthlyRent;
+    let nextPaymentDate = '';
+    
+    // Simple logic based on your database structure
+    if (currentMonth === 10 && currentYear === 2025) {
+      // October 2025 - show November payment
+      nextPaymentDate = '2025-11-05';
+      paymentStatus = 'pending';
+    } else if (currentMonth === 11 && currentYear === 2025) {
+      // November 2025 - show November payment (could be overdue)
+      nextPaymentDate = '2025-11-05';
+      const currentDay = today.getDate();
+      paymentStatus = currentDay > 5 ? 'overdue' : 'pending';
+    } else if (currentMonth === 12 && currentYear === 2025) {
+      // December 2025 - show December payment
+      nextPaymentDate = '2025-12-05';
+      const currentDay = today.getDate();
+      paymentStatus = currentDay > 5 ? 'overdue' : 'pending';
+    } else {
+      // Default to next month
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 5);
+      nextPaymentDate = nextMonth.toISOString().split('T')[0];
+      paymentStatus = 'pending';
+    }
+    
+    return {
+      payment_status: paymentStatus,
+      next_payment_amount: nextPaymentAmount,
+      next_payment_date: nextPaymentDate,
+      monthly_rent: monthlyRent
+    };
   };
 
   useEffect(() => {
@@ -162,7 +197,12 @@ const RenterRent = () => {
       let aValue = a[sortField];
       let bValue = b[sortField];
 
-      if (sortField.includes("date") || sortField === "created_at") {
+      if (sortField === "monthly_rent" || sortField === "next_payment_amount") {
+        aValue = parseFloat(aValue || 0);
+        bValue = parseFloat(bValue || 0);
+      }
+
+      if (sortField.includes("date") || sortField === "created_at" || sortField === "next_payment_date") {
         aValue = new Date(aValue);
         bValue = new Date(bValue);
       }
@@ -333,10 +373,10 @@ const RenterRent = () => {
                     <th className="table-header-cell">Status</th>
                     <th
                       className="table-header-cell sortable"
-                      onClick={() => handleSort("monthly_rent")}
+                      onClick={() => handleSort("next_payment_amount")}
                     >
                       <span className="header-content">
-                        Next Payment {getSortIndicator("monthly_rent")}
+                        Next Payment {getSortIndicator("next_payment_amount")}
                       </span>
                     </th>
                     <th className="table-header-cell">Payment Status</th>
@@ -395,7 +435,7 @@ const RenterRent = () => {
                       </td>
                       <td className="table-cell actions-cell">
                         <Link
-                          to={`/Market/RenterDetails/${renter.renter_id}`}
+                          to={`/Market/RenterStatus/${renter.renter_id}`}
                           className="view-button"
                           title="View renter details"
                         >

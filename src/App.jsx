@@ -32,6 +32,7 @@ import RentApproval from './pages/Market/RentApproval/RentApproval'
 import RenterDetails from './pages/Market/RentApproval/RenterDetails'
 
 import RenterRent from './pages/Market/RenterRent/RenterRent'
+import RenterStatus from './pages/Market/RenterRent/RenterStatus'
 
 
 
@@ -91,6 +92,7 @@ function App() {
               <Route path="/Market/RenterDetails/:id" element={<RenterDetails />} />
 
               <Route path="/Market/RenterRent" element={<RenterRent />} />
+              <Route path="/Market/RenterStatus/:id" element={<RenterStatus />} />
 
 
               <Route path="/settings/general" element={<GeneralSettings />} />
