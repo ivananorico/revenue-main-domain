@@ -1,0 +1,508 @@
+/* MapEditor.css */
+.map-editor-container {
+  padding: 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.map-editor-container h1 {
+  color: #ff6b35;
+  margin-bottom: 20px;
+  font-size: 2rem;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.btn-primary {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #e55a2b 0%, #e57a3b 100%);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #6c757d 0%, #8d99a6 100%);
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #7d8b9a 100%);
+  transform: translateY(-1px);
+}
+
+.instructions {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #ff6b35;
+}
+
+.instructions p {
+  margin: 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.market-map {
+  width: 800px;
+  height: 600px;
+  border: 3px solid #ff6b35;
+  margin: 20px auto;
+  position: relative;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stall {
+  width: 63px;
+  height: 58px;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
+  border: 2px solid white;
+  color: white;
+  font-weight: bold;
+  position: absolute;
+  cursor: move;
+  user-select: none;
+  font-size: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.stall-content {
+  text-align: center;
+  line-height: 1.2;
+}
+
+.stall-name {
+  font-size: 10px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.stall-price {
+  font-size: 9px;
+  font-weight: 500;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.stall-size {
+  font-size: 8px;
+  font-weight: 500;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.stall.available {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
+}
+
+.stall.reserved {
+  background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+}
+
+.stall.occupied {
+  background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+}
+
+.delete-stall-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+  color: white;
+  border: 2px solid white;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.delete-stall-btn:hover {
+  background: linear-gradient(135deg, #c82333 0%, #d63031 100%);
+  transform: scale(1.1);
+}
+
+.controls {
+  margin-top: 20px;
+}
+
+.controls button {
+  margin: 10px;
+  padding: 12px 24px;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.btn-add {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
+}
+
+.btn-add:hover {
+  background: linear-gradient(135deg, #e55a2b 0%, #e57a3b 100%);
+  transform: translateY(-2px);
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.btn-save:hover {
+  background: linear-gradient(135deg, #218838 0%, #1e9e8a 100%);
+  transform: translateY(-2px);
+}
+
+/* Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.price-modal {
+  position: fixed;
+  background: white;
+  border: 3px solid #ff6b35;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  min-width: 300px;
+  animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.price-modal h4 {
+  margin: 0 0 15px 0;
+  color: #ff6b35;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 2px solid #ff6b35;
+  padding-bottom: 8px;
+}
+
+.price-modal label {
+  display: block;
+  margin: 12px 0 6px 0;
+  color: #333;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.price-modal input {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 5px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+.price-modal input:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  min-width: 80px;
+}
+
+.modal-buttons button:first-child {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
+  color: white;
+}
+
+.modal-buttons button:first-child:hover {
+  background: linear-gradient(135deg, #e55a2b 0%, #e57a3b 100%);
+  transform: translateY(-1px);
+}
+
+.modal-buttons button:last-child {
+  background: linear-gradient(135deg, #6c757d 0%, #8d99a6 100%);
+  color: white;
+}
+
+.modal-buttons button:last-child:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #7d8b9a 100%);
+  transform: translateY(-1px);
+}
+
+.error-message {
+  color: #dc3545;
+  background: #f8d7da;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.back-button {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #6c757d 0%, #8d99a6 100%);
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.back-button:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #7d8b9a 100%);
+}
+
+/* Responsive Design */
+@media (max-width: 868px) {
+  .market-map {
+    width: 95%;
+    height: 500px;
+  }
+  
+  .header-section {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .price-modal {
+    min-width: 280px;
+    margin: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .map-editor-container {
+    padding: 10px;
+  }
+  
+  .market-map {
+    height: 400px;
+  }
+  
+  .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .controls button {
+    width: 200px;
+    margin: 5px;
+  }
+  
+  .price-modal {
+    min-width: 250px;
+    padding: 15px;
+  }
+  
+  .modal-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .modal-buttons button {
+    width: 100%;
+  }
+}
+
+/* Add to existing CSS */
+
+.maintenance-stall-btn {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #6c757d 0%, #8d99a6 100%);
+  border: 2px solid white;
+  border-radius: 50%;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.maintenance-stall-btn:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #7d8b9a 100%);
+  transform: translateX(-50%) scale(1.1);
+}
+
+.maintenance-stall-btn.active {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
+}
+
+/* Add maintenance status style */
+.stall.maintenance {
+  background: linear-gradient(135deg, #6c757d 0%, #8d99a6 100%) !important;
+  border: 2px dashed #495057;
+}
+
+.stall.maintenance .stall-content {
+  opacity: 0.8;
+}
+
+.stall.maintenance::after {
+  content: "🚧";
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Section Filter Styles */
+.section-filter {
+  margin: 15px 0;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.section-filter label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #333;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 200px;
+}
+
+.filter-info {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Filtered stall styles */
+.stall.filtered {
+  border: 2px solid #007bff;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+}
+
+/* Stall section display */
+.stall-section {
+  font-size: 10px;
+  color: #007bff;
+  font-weight: bold;
+  margin-top: 2px;
+  background: rgba(0, 123, 255, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+/* Modal adjustments for new field */
+.price-modal {
+  max-height: 550px;
+  overflow-y: auto;
+}
+
+.price-modal input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
