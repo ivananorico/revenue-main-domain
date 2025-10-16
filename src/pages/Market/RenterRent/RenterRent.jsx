@@ -18,7 +18,7 @@ const RenterRent = () => {
       setLoading(true);
       setError("");
       
-      const API_URL = "http://localhost/revenue/backend/Market/RenterRent/renter_rent_details.php";
+      const API_URL = "http://localhost/revenue/backend/Market/RenterRent/get_all_renters.php";
       console.log("Fetching from:", API_URL);
       
       const response = await fetch(API_URL, {
@@ -36,8 +36,8 @@ const RenterRent = () => {
       console.log("API Response:", data);
 
       if (data.success) {
-        // Get renters from data.data.renters (new structure)
-        const activeRenters = data.data.renters ? data.data.renters.filter(renter => renter.status === 'active') : [];
+        // Get active renters
+        const activeRenters = data.renters ? data.renters.filter(renter => renter.status === 'active') : [];
         
         // Add payment data to each renter
         const rentersWithPaymentData = activeRenters.map(renter => {
@@ -63,12 +63,6 @@ const RenterRent = () => {
   };
 
   const getNextPaymentData = (renter) => {
-    // Based on your database, for R2025100022 you have:
-    // - October 2025: PAID (516.13)
-    // - November 2025: PENDING (1000.00) 
-    // - December 2025: PENDING (1000.00)
-    
-    // For now, we'll simulate the data. In production, you would join with monthly_payments table
     const monthlyRent = parseFloat(renter.monthly_rent || 1000.00);
     
     // Get current date to determine payment status
@@ -189,6 +183,8 @@ const RenterRent = () => {
       const matchesSearch = !filters.search || 
         renter.business_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
         renter.full_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        renter.first_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        renter.last_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
         renter.renter_id?.toLowerCase().includes(filters.search.toLowerCase());
 
       return matchesMarket && matchesSearch;
@@ -402,6 +398,11 @@ const RenterRent = () => {
                       <td className="table-cell renter-info">
                         <div className="renter-name">
                           {renter.full_name}
+                        </div>
+                        <div className="renter-details">
+                          <small>
+                            {renter.first_name} {renter.middle_name ? renter.middle_name + ' ' : ''}{renter.last_name}
+                          </small>
                         </div>
                         <div className="renter-contact">
                           {renter.contact_number}

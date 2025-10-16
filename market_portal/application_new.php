@@ -10,7 +10,6 @@ $stall_dimensions = $_POST['stall_dimensions'] ?? '';
 $stall_class = $_POST['stall_class'] ?? '';
 $stall_rights = $_POST['stall_rights'] ?? '';
 $user_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
-$name = $_POST['name'] ?? $_SESSION['full_name'] ?? '';
 $email = $_POST['email'] ?? $_SESSION['email'] ?? '';
 
 // Redirect if missing essential data
@@ -61,13 +60,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_application'])
         $allowedTypes = ['jpg', 'jpeg', 'png', 'pdf'];
         $maxFileSize = 5 * 1024 * 1024; // 5MB
         
-        // Get additional form data with new address fields
-        $full_name = $_POST['full_name'] ?? '';
+        // Get additional form data with new name fields
+        $first_name = $_POST['first_name'] ?? '';
+        $middle_name = $_POST['middle_name'] ?? '';
+        $last_name = $_POST['last_name'] ?? '';
         $gender = $_POST['gender'] ?? '';
         $date_of_birth = $_POST['date_of_birth'] ?? '';
         $civil_status = $_POST['civil_status'] ?? '';
         
-        // New address fields (without province)
+        // Address fields
         $house_number = $_POST['house_number'] ?? '';
         $street = $_POST['street'] ?? '';
         $barangay = $_POST['barangay'] ?? '';
@@ -82,27 +83,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_application'])
         $business_name = $_POST['business_name'] ?? '';
         $certification_agree = isset($_POST['certification_agree']) ? 1 : 0;
         
-        // Validate required fields including new address fields
-        if (empty($full_name) || empty($gender) || empty($date_of_birth) || empty($civil_status) || 
+        // Validate required fields
+        if (empty($first_name) || empty($last_name) || empty($gender) || empty($date_of_birth) || empty($civil_status) || 
             empty($house_number) || empty($street) || empty($barangay) || empty($city) || 
             empty($zip_code) || empty($contact_number) || empty($business_name)) {
             throw new Exception('All required fields must be filled');
         }
         
-        // Insert application into database with new address fields
+        // Insert application into database with new name fields
         $stmt = $pdo->prepare("
             INSERT INTO applications 
-            (user_id, stall_id, application_type, full_name, gender, date_of_birth, civil_status, 
+            (user_id, stall_id, application_type, first_name, middle_name, last_name, gender, date_of_birth, civil_status, 
              house_number, street, barangay, city, zip_code,
              contact_number, email, market_name, market_section, stall_number,
              business_name, certification_agree, status) 
-            VALUES (?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+            VALUES (?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
         ");
         
         $stmt->execute([
             $user_id, 
             $stall_id, 
-            $full_name, 
+            $first_name,
+            $middle_name,
+            $last_name,
             $gender, 
             $date_of_birth, 
             $civil_status,
@@ -278,10 +281,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_application'])
                 <h3>Personal Information</h3>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="full_name">Full Name <span class="required">*</span></label>
-                        <input type="text" id="full_name" name="full_name" required 
-                               value="<?php echo htmlspecialchars($name); ?>"
-                               placeholder="Enter your full name">
+                        <label for="first_name">First Name <span class="required">*</span></label>
+                        <input type="text" id="first_name" name="first_name" required 
+                               placeholder="Enter your first name">
+                    </div>
+                    <div class="form-group">
+                        <label for="middle_name">Middle Name</label>
+                        <input type="text" id="middle_name" name="middle_name" 
+                               placeholder="Enter your middle name">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="last_name">Last Name <span class="required">*</span></label>
+                        <input type="text" id="last_name" name="last_name" required 
+                               placeholder="Enter your last name">
                     </div>
                     <div class="form-group">
                         <label for="gender">Gender <span class="required">*</span></label>

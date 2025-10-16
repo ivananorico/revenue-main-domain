@@ -44,9 +44,23 @@ try {
         error_log("ERROR: Applications table does not exist!");
     }
 
-    // Now fetch the applications
+    // Now fetch the applications with combined full_name
     error_log("Fetching applications...");
-    $stmt = $pdo->prepare("SELECT * FROM applications ORDER BY id DESC");
+    $stmt = $pdo->prepare("
+        SELECT 
+            a.*,
+            CONCAT(a.first_name, ' ', IFNULL(CONCAT(a.middle_name, ' '), ''), a.last_name) as full_name,
+            s.name as stall_name,
+            m.name as market_name,
+            sr.class_name,
+            sec.name as section_name
+        FROM applications a
+        LEFT JOIN stalls s ON a.stall_id = s.id
+        LEFT JOIN maps m ON s.map_id = m.id
+        LEFT JOIN stall_rights sr ON s.class_id = sr.class_id
+        LEFT JOIN sections sec ON s.section_id = sec.id
+        ORDER BY a.id DESC
+    ");
     $stmt->execute();
     $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -55,8 +69,8 @@ try {
     if (count($applications) > 0) {
         error_log("First application ID: " . $applications[0]['id']);
         error_log("First application business_name: " . $applications[0]['business_name']);
+        error_log("First application full_name: " . $applications[0]['full_name']);
         error_log("All columns in first app: " . implode(", ", array_keys($applications[0])));
-        error_log("First application full data: " . json_encode($applications[0]));
     } else {
         error_log("No applications found in database");
     }
@@ -69,8 +83,14 @@ try {
             "total_applications" => count($applications),
             "database_tables" => $tables,
             "applications_table_exists" => in_array('applications', $tables),
-            "first_application" => count($applications) > 0 ? $applications[0] : null,
-            "all_columns" => count($applications) > 0 ? array_keys($applications[0]) : []
+            "first_application" => count($applications) > 0 ? [
+                'id' => $applications[0]['id'],
+                'business_name' => $applications[0]['business_name'],
+                'full_name' => $applications[0]['full_name'],
+                'first_name' => $applications[0]['first_name'],
+                'middle_name' => $applications[0]['middle_name'],
+                'last_name' => $applications[0]['last_name']
+            ] : null
         ]
     ];
     

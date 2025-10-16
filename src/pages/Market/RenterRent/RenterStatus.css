@@ -502,3 +502,24 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+.name-details {
+  background: #f8f9fa;
+  border-radius: 4px;
+  padding: 8px;
+  margin-top: 5px;
+  border-left: 3px solid #007bff;
+}
+
+.name-detail {
+  font-size: 0.85em;
+  color: #6c757d;
+  margin-bottom: 2px;
+}
+
+.name-detail:last-child {
+  margin-bottom: 0;
+}
+
+.name-detail strong {
+  color: #495057;
+}

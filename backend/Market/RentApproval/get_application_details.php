@@ -30,15 +30,17 @@ try {
         throw new Exception('Invalid application ID');
     }
 
-    // Updated query to include all necessary fields
+    // Updated query to include all necessary fields with combined full_name
     $query = "
         SELECT 
             a.*,
+            CONCAT(a.first_name, ' ', IFNULL(CONCAT(a.middle_name, ' '), ''), a.last_name) as full_name,
             s.name AS stall_name,
             s.status AS stall_status,
             s.price AS stall_price,
             s.length, s.width, s.height,
             sr.class_name,
+            sr.price AS stall_rights_price,
             sr.description AS class_description,
             sec.name AS section_name,
             m.name AS market_name
@@ -89,7 +91,8 @@ try {
         $required_fields = [
             'business_name', 'full_name', 'status', 'application_date',
             'gender', 'date_of_birth', 'civil_status', 'contact_number', 'email',
-            'application_type', 'stall_number', 'stall_status'
+            'application_type', 'stall_number', 'stall_status',
+            'first_name', 'middle_name', 'last_name'
         ];
         
         foreach ($required_fields as $field) {

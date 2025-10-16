@@ -35,17 +35,31 @@ $_SESSION['last_payment_data'] = [
     'payment_ids' => $payment_ids
 ];
 
-// Fetch payment details for display
+// Fetch payment details for display - UPDATED FOR NEW NAME STRUCTURE
 if ($payment_type === 'application') {
     $stmt = $pdo->prepare("
-        SELECT a.full_name, a.business_name, a.market_name, a.stall_number
+        SELECT 
+            a.first_name,
+            a.middle_name,
+            a.last_name,
+            CONCAT(a.first_name, ' ', IFNULL(CONCAT(a.middle_name, ' '), ''), a.last_name) as full_name,
+            a.business_name, 
+            a.market_name, 
+            a.stall_number
         FROM applications a 
         WHERE a.id = ? AND a.user_id = ?
     ");
     $stmt->execute([$application_id, $user_id]);
 } else {
     $stmt = $pdo->prepare("
-        SELECT r.full_name, r.business_name, r.market_name, r.stall_number
+        SELECT 
+            r.first_name,
+            r.middle_name,
+            r.last_name,
+            CONCAT(r.first_name, ' ', IFNULL(CONCAT(r.middle_name, ' '), ''), r.last_name) as full_name,
+            r.business_name, 
+            r.market_name, 
+            r.stall_number
         FROM renters r 
         WHERE r.application_id = ? AND r.user_id = ?
     ");
@@ -77,6 +91,33 @@ if (!$details) {
     border: 1px solid #f5c6cb;
     text-align: center;
 }
+
+.name-details {
+    background: #f8f9fa;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 5px;
+}
+
+.name-detail-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
+
+.name-detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.name-detail-label {
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.name-detail-value {
+    color: #495057;
+}
 </style>
 </head>
 <body>
@@ -103,6 +144,23 @@ if (!$details) {
                 <div class="billing-item">
                     <label>Applicant Name:</label>
                     <span><?= htmlspecialchars($details['full_name']) ?></span>
+                    <!-- Show individual name components for verification -->
+                    <div class="name-details">
+                        <div class="name-detail-item">
+                            <span class="name-detail-label">First Name:</span>
+                            <span class="name-detail-value"><?= htmlspecialchars($details['first_name']) ?></span>
+                        </div>
+                        <?php if (!empty($details['middle_name'])): ?>
+                        <div class="name-detail-item">
+                            <span class="name-detail-label">Middle Name:</span>
+                            <span class="name-detail-value"><?= htmlspecialchars($details['middle_name']) ?></span>
+                        </div>
+                        <?php endif; ?>
+                        <div class="name-detail-item">
+                            <span class="name-detail-label">Last Name:</span>
+                            <span class="name-detail-value"><?= htmlspecialchars($details['last_name']) ?></span>
+                        </div>
+                    </div>
                 </div>
                 <div class="billing-item">
                     <label>Business Name:</label>
@@ -137,91 +195,91 @@ if (!$details) {
         <h3>Choose Payment Method</h3>
         
         <form id="paymentForm" method="POST" action="process_payment.php">
-    <!-- NO SECURITY TOKENS - COMPLETELY REMOVED -->
-    <input type="hidden" name="application_id" value="<?= $application_id ?>">
-    <input type="hidden" name="payment_type" value="<?= $payment_type ?>">
-    <input type="hidden" name="amount" value="<?= $amount ?>">
-    <?php if ($payment_id): ?>
-        <input type="hidden" name="payment_id" value="<?= $payment_id ?>">
-    <?php endif; ?>
-    <?php if ($payment_ids): ?>
-        <input type="hidden" name="payment_ids" value="<?= $payment_ids ?>">
-    <?php endif; ?>
+            <!-- NO SECURITY TOKENS - COMPLETELY REMOVED -->
+            <input type="hidden" name="application_id" value="<?= $application_id ?>">
+            <input type="hidden" name="payment_type" value="<?= $payment_type ?>">
+            <input type="hidden" name="amount" value="<?= $amount ?>">
+            <?php if ($payment_id): ?>
+                <input type="hidden" name="payment_id" value="<?= $payment_id ?>">
+            <?php endif; ?>
+            <?php if ($payment_ids): ?>
+                <input type="hidden" name="payment_ids" value="<?= $payment_ids ?>">
+            <?php endif; ?>
 
-    <div class="payment-options">
-        <div class="payment-method">
-            <input type="radio" name="payment_method" value="gcash" id="gcash" required>
-            <label for="gcash" class="method-label">
-                <div class="method-icon">
-                    <img src="images/gcash-logo.png" alt="GCash" onerror="this.style.display='none'">
+            <div class="payment-options">
+                <div class="payment-method">
+                    <input type="radio" name="payment_method" value="gcash" id="gcash" required>
+                    <label for="gcash" class="method-label">
+                        <div class="method-icon">
+                            <img src="images/gcash-logo.png" alt="GCash" onerror="this.style.display='none'">
+                        </div>
+                        <div class="method-info">
+                            <span class="method-name">GCash</span>
+                            <span class="method-desc">Pay using your GCash wallet</span>
+                        </div>
+                    </label>
                 </div>
-                <div class="method-info">
-                    <span class="method-name">GCash</span>
-                    <span class="method-desc">Pay using your GCash wallet</span>
-                </div>
-            </label>
-        </div>
 
-        <div class="payment-method">
-            <input type="radio" name="payment_method" value="maya" id="maya">
-            <label for="maya" class="method-label">
-                <div class="method-icon">
-                    <img src="images/maya-logo.png" alt="Maya" onerror="this.style.display='none'">
+                <div class="payment-method">
+                    <input type="radio" name="payment_method" value="maya" id="maya">
+                    <label for="maya" class="method-label">
+                        <div class="method-icon">
+                            <img src="images/maya-logo.png" alt="Maya" onerror="this.style.display='none'">
+                        </div>
+                        <div class="method-info">
+                            <span class="method-name">Maya</span>
+                            <span class="method-desc">Pay using your Maya wallet</span>
+                        </div>
+                    </label>
                 </div>
-                <div class="method-info">
-                    <span class="method-name">Maya</span>
-                    <span class="method-desc">Pay using your Maya wallet</span>
-                </div>
-            </label>
-        </div>
 
-        <div class="payment-method">
-            <input type="radio" name="payment_method" value="bank_transfer" id="bank_transfer">
-            <label for="bank_transfer" class="method-label">
-                <div class="method-icon">
-                    <img src="images/bank-transfer.png" alt="Bank Transfer" onerror="this.style.display='none'">
+                <div class="payment-method">
+                    <input type="radio" name="payment_method" value="bank_transfer" id="bank_transfer">
+                    <label for="bank_transfer" class="method-label">
+                        <div class="method-icon">
+                            <img src="images/bank-transfer.png" alt="Bank Transfer" onerror="this.style.display='none'">
+                        </div>
+                        <div class="method-info">
+                            <span class="method-name">Bank Transfer</span>
+                            <span class="method-desc">Transfer funds from your bank account</span>
+                        </div>
+                    </label>
                 </div>
-                <div class="method-info">
-                    <span class="method-name">Bank Transfer</span>
-                    <span class="method-desc">Transfer funds from your bank account</span>
-                </div>
-            </label>
-        </div>
 
-        <div class="payment-method">
-            <input type="radio" name="payment_method" value="over_the_counter" id="over_the_counter">
-            <label for="over_the_counter" class="method-label">
-                <div class="method-icon">
-                    <img src="images/otc.png" alt="Over the Counter" onerror="this.style.display='none'">
+                <div class="payment-method">
+                    <input type="radio" name="payment_method" value="over_the_counter" id="over_the_counter">
+                    <label for="over_the_counter" class="method-label">
+                        <div class="method-icon">
+                            <img src="images/otc.png" alt="Over the Counter" onerror="this.style.display='none'">
+                        </div>
+                        <div class="method-info">
+                            <span class="method-name">Over the Counter</span>
+                            <span class="method-desc">Pay at designated payment centers</span>
+                        </div>
+                    </label>
                 </div>
-                <div class="method-info">
-                    <span class="method-name">Over the Counter</span>
-                    <span class="method-desc">Pay at designated payment centers</span>
+            </div>
+
+            <div id="phoneNumberSection" class="phone-number-section" style="display: none;">
+                <div class="form-group">
+                    <label for="phone_number">Mobile Number <span class="required">*</span></label>
+                    <input type="tel" id="phone_number" name="phone_number" 
+                           placeholder="Enter your mobile number (e.g., 09171234567)" 
+                           pattern="[0-9]{11}" maxlength="11">
+                    <small class="form-text">Please enter your 11-digit mobile number</small>
                 </div>
-            </label>
-        </div>
-    </div>
+            </div>
 
-    <div id="phoneNumberSection" class="phone-number-section" style="display: none;">
-        <div class="form-group">
-            <label for="phone_number">Mobile Number <span class="required">*</span></label>
-            <input type="tel" id="phone_number" name="phone_number" 
-                   placeholder="Enter your mobile number (e.g., 09171234567)" 
-                   pattern="[0-9]{11}" maxlength="11">
-            <small class="form-text">Please enter your 11-digit mobile number</small>
-        </div>
-    </div>
-
-    <div class="payment-actions">
-        <button type="submit" id="pay-button" class="pay-now-btn">
-            Confirm Payment
-        </button>
-        <a href="pay_application_fee.php?application_id=<?= $application_id ?>&payment_type=<?= $payment_type ?><?= $payment_id ? '&payment_id=' . $payment_id : '' ?><?= $payment_ids ? '&payment_ids=' . $payment_ids : '' ?>&amount=<?= $amount ?>" 
-           class="cancel-btn">
-            Back
-        </a>
-    </div>
-</form>
+            <div class="payment-actions">
+                <button type="submit" id="pay-button" class="pay-now-btn">
+                    Confirm Payment
+                </button>
+                <a href="pay_application_fee.php?application_id=<?= $application_id ?>&payment_type=<?= $payment_type ?><?= $payment_id ? '&payment_id=' . $payment_id : '' ?><?= $payment_ids ? '&payment_ids=' . $payment_ids : '' ?>&amount=<?= $amount ?>" 
+                   class="cancel-btn">
+                    Back
+                </a>
+            </div>
+        </form>
     </div>
 </div>
 

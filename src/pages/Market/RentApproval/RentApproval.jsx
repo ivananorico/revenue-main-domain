@@ -432,6 +432,9 @@ const RentApproval = () => {
                         <div className="applicant-email">
                           {application.email}
                         </div>
+                        <div className="applicant-contact">
+                          {application.contact_number}
+                        </div>
                       </td>
                       <td className="table-cell stall-info">
                         <div className="stall-number">
@@ -439,6 +442,9 @@ const RentApproval = () => {
                         </div>
                         <div className="market-name">
                           {application.market_name}
+                        </div>
+                        <div className="stall-class">
+                          Class: {application.class_name}
                         </div>
                       </td>
                       <td className="table-cell">

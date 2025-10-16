@@ -545,6 +545,18 @@ export default function RenterDetails() {
                 <div className="value">{application.full_name || 'N/A'}</div>
               </div>
               <div className="info-item">
+                <label>First Name</label>
+                <div className="value">{application.first_name || 'N/A'}</div>
+              </div>
+              <div className="info-item">
+                <label>Middle Name</label>
+                <div className="value">{application.middle_name || 'N/A'}</div>
+              </div>
+              <div className="info-item">
+                <label>Last Name</label>
+                <div className="value">{application.last_name || 'N/A'}</div>
+              </div>
+              <div className="info-item">
                 <label>Gender</label>
                 <div className="value">{application.gender || 'N/A'}</div>
               </div>

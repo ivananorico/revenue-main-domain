@@ -21,11 +21,13 @@ if (!$application_id || !$payment_type || !$method || !$ref || !$amount) {
 
 try {
     if ($payment_type === 'application') {
-        // Get application data - NO USER VALIDATION
+        // Get application data - UPDATED FOR NEW NAME STRUCTURE
         $stmt = $pdo->prepare("
             SELECT 
                 af.*,
-                a.full_name,
+                a.first_name,
+                a.middle_name,
+                a.last_name,
                 a.business_name,
                 a.market_name,
                 a.stall_number,
@@ -48,12 +50,22 @@ try {
             exit;
         }
 
+        // Create full name from individual components
+        $full_name = $payment_data['first_name'];
+        if (!empty($payment_data['middle_name'])) {
+            $full_name .= ' ' . $payment_data['middle_name'];
+        }
+        $full_name .= ' ' . $payment_data['last_name'];
+        $payment_data['full_name'] = $full_name;
+
     } else {
-        // Get rent payment data - NO USER VALIDATION
+        // Get rent payment data - UPDATED FOR NEW NAME STRUCTURE
         $stmt = $pdo->prepare("
             SELECT 
                 mp.*,
-                r.full_name,
+                r.first_name,
+                r.middle_name,
+                r.last_name,
                 r.business_name,
                 r.market_name,
                 r.stall_number,
@@ -71,6 +83,14 @@ try {
             echo "Rent payment data not found";
             exit;
         }
+
+        // Create full name from individual components
+        $full_name = $payment_data['first_name'];
+        if (!empty($payment_data['middle_name'])) {
+            $full_name .= ' ' . $payment_data['middle_name'];
+        }
+        $full_name .= ' ' . $payment_data['last_name'];
+        $payment_data['full_name'] = $full_name;
     }
 
 } catch (PDOException $e) {
@@ -97,6 +117,8 @@ try {
         .reference { background: #e8f5e8; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0; }
         .buttons { text-align: center; margin-top: 30px; }
         .btn { padding: 10px 20px; margin: 0 10px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .name-details { background: #f0f8ff; padding: 10px; border-radius: 5px; margin-top: 5px; }
+        .name-detail { font-size: 0.9em; color: #666; }
     </style>
 </head>
 <body>
@@ -112,6 +134,13 @@ try {
             <div class="detail-item">
                 <span class="detail-label">Applicant Name:</span>
                 <?= htmlspecialchars($payment_data['full_name']) ?>
+                <div class="name-details">
+                    <div class="name-detail"><strong>First Name:</strong> <?= htmlspecialchars($payment_data['first_name']) ?></div>
+                    <?php if (!empty($payment_data['middle_name'])): ?>
+                        <div class="name-detail"><strong>Middle Name:</strong> <?= htmlspecialchars($payment_data['middle_name']) ?></div>
+                    <?php endif; ?>
+                    <div class="name-detail"><strong>Last Name:</strong> <?= htmlspecialchars($payment_data['last_name']) ?></div>
+                </div>
             </div>
             <div class="detail-item">
                 <span class="detail-label">Business Name:</span>
@@ -141,6 +170,28 @@ try {
             <strong>Reference Number:</strong><br>
             <?= htmlspecialchars($ref) ?>
         </div>
+
+        <?php if ($payment_type === 'application' && isset($payment_data['renter_id'])): ?>
+        <div class="details">
+            <h2>Account Information</h2>
+            <div class="detail-item">
+                <span class="detail-label">Renter ID:</span>
+                <?= htmlspecialchars($payment_data['renter_id']) ?>
+            </div>
+            <?php if (isset($payment_data['contract_number'])): ?>
+            <div class="detail-item">
+                <span class="detail-label">Lease Contract:</span>
+                <?= htmlspecialchars($payment_data['contract_number']) ?>
+            </div>
+            <?php endif; ?>
+            <?php if (isset($payment_data['certificate_number'])): ?>
+            <div class="detail-item">
+                <span class="detail-label">Stall Rights Certificate:</span>
+                <?= htmlspecialchars($payment_data['certificate_number']) ?>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
 
         <div class="buttons">
             <button onclick="window.print()" class="btn">Print Receipt</button>

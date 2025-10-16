@@ -14,11 +14,14 @@ if (!$application_id) {
     die("No application specified.");
 }
 
-// Fetch renter information with lease contract
+// Fetch renter information with lease contract - UPDATED FOR NEW NAME STRUCTURE
 $stmt = $pdo->prepare("
     SELECT 
         r.*,
-        a.full_name,
+        a.first_name,
+        a.middle_name,
+        a.last_name,
+        CONCAT(a.first_name, ' ', IFNULL(CONCAT(a.middle_name, ' '), ''), a.last_name) as full_name,
         a.business_name,
         a.market_name,
         a.stall_number,
@@ -76,6 +79,29 @@ foreach ($pending_payments as $payment) {
 <link rel="stylesheet" href="../navbar.css">
 <link rel="stylesheet" href="payment_rent.css">
 <title>Monthly Rent Payments</title>
+<style>
+.name-details {
+    background: #f8f9fa;
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 5px;
+    border-left: 3px solid #007bff;
+}
+
+.name-detail {
+    font-size: 0.85em;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+
+.name-detail:last-child {
+    margin-bottom: 0;
+}
+
+.name-detail strong {
+    color: #495057;
+}
+</style>
 </head>
 <body>
 <?php include '../navbar.php'; ?>
@@ -97,6 +123,20 @@ foreach ($pending_payments as $payment) {
                 <div class="billing-item">
                     <label>Full Name:</label>
                     <span><?= htmlspecialchars($renter['full_name']) ?></span>
+                    <!-- Show individual name components -->
+                    <div class="name-details">
+                        <div class="name-detail">
+                            <strong>First Name:</strong> <?= htmlspecialchars($renter['first_name']) ?>
+                        </div>
+                        <?php if (!empty($renter['middle_name'])): ?>
+                        <div class="name-detail">
+                            <strong>Middle Name:</strong> <?= htmlspecialchars($renter['middle_name']) ?>
+                        </div>
+                        <?php endif; ?>
+                        <div class="name-detail">
+                            <strong>Last Name:</strong> <?= htmlspecialchars($renter['last_name']) ?>
+                        </div>
+                    </div>
                 </div>
                 <div class="billing-item">
                     <label>Business Name:</label>

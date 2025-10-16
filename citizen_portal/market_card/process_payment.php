@@ -6,7 +6,7 @@ require_once '../../db/Market/market_db.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Handle form data - NO SECURITY, NO USER CHECK
+// Handle form data
 $application_id = $_POST['application_id'] ?? null;
 $method = $_POST['payment_method'] ?? null;
 $phone_number = $_POST['phone_number'] ?? null;
@@ -40,10 +40,24 @@ try {
     if ($payment_type === 'application') {
         error_log("Processing APPLICATION FEE payment");
         
-        // Get application data - NO USER VALIDATION
+        // Get application data - UPDATED FOR NEW NAME STRUCTURE (NO full_name)
         $stmt = $pdo->prepare("
-            SELECT af.*, a.*, s.id as stall_id, s.price as monthly_rent, s.class_id, 
-                   m.name as market_name, sec.name as section_name, sr.class_name
+            SELECT 
+                af.*, 
+                a.first_name,
+                a.middle_name, 
+                a.last_name,
+                a.contact_number,
+                a.email,
+                a.business_name,
+                a.stall_number,
+                a.user_id,
+                s.id as stall_id, 
+                s.price as monthly_rent, 
+                s.class_id, 
+                m.name as market_name, 
+                sec.name as section_name, 
+                sr.class_name
             FROM application_fee af 
             JOIN applications a ON af.application_id = a.id
             JOIN stalls s ON a.stall_id = s.id
@@ -102,27 +116,35 @@ try {
         // Generate renter ID
         $renter_id = 'R' . date('Ym') . str_pad($application_id, 4, '0', STR_PAD_LEFT);
 
-        // Create renter record
+        // Create renter record - UPDATED FOR NEW NAME STRUCTURE (NO full_name)
         $stmt = $pdo->prepare("
             INSERT INTO renters 
-            (renter_id, application_id, user_id, stall_id, full_name, contact_number, email, 
+            (renter_id, application_id, user_id, stall_id, 
+             first_name, middle_name, last_name,
+             contact_number, email, 
              business_name, market_name, stall_number, section_name, class_name, 
              monthly_rent, stall_rights_fee, security_bond, status, created_at) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW())
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW())
         ");
         $stmt->execute([
             $renter_id,
             $application_id,
             $application_data['user_id'],
             $application_data['stall_id'],
-            $application_data['full_name'],
+            // Individual name fields only (no full_name)
+            $application_data['first_name'],
+            $application_data['middle_name'],
+            $application_data['last_name'],
+            // Contact information
             $application_data['contact_number'],
             $application_data['email'],
+            // Business information
             $application_data['business_name'],
             $application_data['market_name'],
             $application_data['stall_number'],
             $application_data['section_name'],
             $application_data['class_name'],
+            // Financial information
             $application_data['monthly_rent'],
             $application_data['stall_rights_fee'],
             $application_data['security_bond']
@@ -172,9 +194,13 @@ try {
     } else {
         error_log("Processing RENT payment");
         
-        // Get renter data - NO USER VALIDATION
+        // Get renter data - UPDATED FOR NEW NAME STRUCTURE (NO full_name)
         $stmt = $pdo->prepare("
-            SELECT r.renter_id
+            SELECT 
+                r.renter_id,
+                r.first_name,
+                r.middle_name,
+                r.last_name
             FROM renters r 
             WHERE r.application_id = :application_id
             LIMIT 1

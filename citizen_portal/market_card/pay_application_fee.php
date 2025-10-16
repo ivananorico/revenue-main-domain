@@ -19,11 +19,14 @@ if (!$application_id) {
 }
 
 if ($payment_type === 'application') {
-    // Fetch application fee info with billing details
+    // Fetch application fee info with billing details - UPDATED FOR NEW NAME STRUCTURE
     $stmt = $pdo->prepare("
         SELECT 
             af.*, 
-            a.full_name, 
+            a.first_name,
+            a.middle_name,
+            a.last_name,
+            CONCAT(a.first_name, ' ', IFNULL(CONCAT(a.middle_name, ' '), ''), a.last_name) as full_name,
             a.business_name,
             a.market_name,
             a.stall_number,
@@ -53,11 +56,14 @@ if ($payment_type === 'application') {
     $application_date = date('F j, Y', strtotime($payment_data['application_date']));
     
 } else {
-    // For rent payments, fetch renter information
+    // For rent payments, fetch renter information - UPDATED FOR NEW NAME STRUCTURE
     $stmt = $pdo->prepare("
         SELECT 
             r.*,
-            a.full_name,
+            a.first_name,
+            a.middle_name,
+            a.last_name,
+            CONCAT(a.first_name, ' ', IFNULL(CONCAT(a.middle_name, ' '), ''), a.last_name) as full_name,
             a.business_name,
             a.market_name,
             a.stall_number
@@ -123,6 +129,21 @@ if ($payment_type === 'application') {
                         <label>Applicant Name:</label>
                         <span><?= htmlspecialchars($payment_data['full_name']) ?></span>
                     </div>
+                    <!-- Optional: Show individual name components for verification -->
+                    <div class="billing-item">
+                        <label>First Name:</label>
+                        <span><?= htmlspecialchars($payment_data['first_name']) ?></span>
+                    </div>
+                    <?php if (!empty($payment_data['middle_name'])): ?>
+                    <div class="billing-item">
+                        <label>Middle Name:</label>
+                        <span><?= htmlspecialchars($payment_data['middle_name']) ?></span>
+                    </div>
+                    <?php endif; ?>
+                    <div class="billing-item">
+                        <label>Last Name:</label>
+                        <span><?= htmlspecialchars($payment_data['last_name']) ?></span>
+                    </div>
                     <div class="billing-item">
                         <label>Business Name:</label>
                         <span><?= htmlspecialchars($payment_data['business_name']) ?></span>
@@ -151,6 +172,21 @@ if ($payment_type === 'application') {
                     <div class="billing-item">
                         <label>Applicant Name:</label>
                         <span><?= htmlspecialchars($payment_data['full_name']) ?></span>
+                    </div>
+                    <!-- Optional: Show individual name components for verification -->
+                    <div class="billing-item">
+                        <label>First Name:</label>
+                        <span><?= htmlspecialchars($payment_data['first_name']) ?></span>
+                    </div>
+                    <?php if (!empty($payment_data['middle_name'])): ?>
+                    <div class="billing-item">
+                        <label>Middle Name:</label>
+                        <span><?= htmlspecialchars($payment_data['middle_name']) ?></span>
+                    </div>
+                    <?php endif; ?>
+                    <div class="billing-item">
+                        <label>Last Name:</label>
+                        <span><?= htmlspecialchars($payment_data['last_name']) ?></span>
                     </div>
                     <div class="billing-item">
                         <label>Business Name:</label>

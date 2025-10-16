@@ -36,7 +36,14 @@ export default function RenterStatus() {
       
       if (data.success && data.data && data.data.renter) {
         console.log("✅ Renter found:", data.data.renter);
-        setRenter(data.data.renter);
+        
+        // Create full_name from individual components if not provided
+        const renterData = data.data.renter;
+        if (!renterData.full_name && renterData.first_name) {
+          renterData.full_name = `${renterData.first_name}${renterData.middle_name ? ' ' + renterData.middle_name : ''} ${renterData.last_name}`;
+        }
+        
+        setRenter(renterData);
         setPayments(data.data.payments || []);
       } else {
         setError(data.message || "Renter not found");
@@ -161,6 +168,20 @@ export default function RenterStatus() {
             <div className="info-item">
               <label className="info-label">Full Name</label>
               <p className="info-value-large">{renter.full_name}</p>
+              {/* Show individual name components */}
+              <div className="name-details">
+                <div className="name-detail">
+                  <strong>First:</strong> {renter.first_name}
+                </div>
+                {renter.middle_name && (
+                  <div className="name-detail">
+                    <strong>Middle:</strong> {renter.middle_name}
+                  </div>
+                )}
+                <div className="name-detail">
+                  <strong>Last:</strong> {renter.last_name}
+                </div>
+              </div>
             </div>
             <div className="info-item">
               <label className="info-label">Business Name</label>
@@ -189,6 +210,10 @@ export default function RenterStatus() {
             <div className="info-item">
               <label className="info-label">Class</label>
               <p className="info-value-emphasis">Class {renter.class_name}</p>
+            </div>
+            <div className="info-item">
+              <label className="info-label">Status</label>
+              <p className="info-value-emphasis">{renter.status || 'Active'}</p>
             </div>
           </div>
         </div>
