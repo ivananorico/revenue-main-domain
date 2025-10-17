@@ -2,8 +2,16 @@
 session_start();
 require_once '../../db/Market/market_db.php';
 
+// Handle logout first
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header('Location: ../../citizen_portal/index.php');
+    exit;
+}
+
+// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: ../../citizen_portal/index.php');
     exit;
 }
 
@@ -14,8 +22,15 @@ $payment_id = $_GET['payment_id'] ?? null;
 $payment_ids = $_GET['payment_ids'] ?? null;
 $amount = $_GET['amount'] ?? null;
 
+// Check if application_id is provided and valid
 if (!$application_id) {
-    die("No application specified.");
+    // Redirect to appropriate page instead of showing error
+    if ($payment_type === 'application') {
+        header('Location: apply_stall.php');
+    } else {
+        header('Location: payment_rent.php');
+    }
+    exit;
 }
 
 if ($payment_type === 'application') {
@@ -47,7 +62,9 @@ if ($payment_type === 'application') {
     $payment_data = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$payment_data) {
-        die("Application fee not found.");
+        // Redirect if payment data not found
+        header('Location: apply_stall.php');
+        exit;
     }
 
     $title = "Pay Stall Application Fee";
@@ -79,7 +96,9 @@ if ($payment_type === 'application') {
     $renter = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$renter) {
-        die("Renter information not found.");
+        // Redirect if renter not found
+        header('Location: payment_rent.php');
+        exit;
     }
 
     if ($payment_type === 'rent') {

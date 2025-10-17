@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $stmt = $pdo->prepare("INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)");
         if ($stmt->execute([$full_name, $email, $password_hash])) {
-            $message = "Registration successful! <a href='login.php'>Login here</a>";
+            $message = "Registration successful! <a href='index.php'>Login here</a>";
         } else {
             $message = "Registration failed!";
         }
@@ -38,6 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="password" name="password" placeholder="Password" required><br><br>
         <button type="submit">Register</button>
     </form>
-    <p>Already have an account? <a href="login.php">Login</a></p>
+    <p>Already have an account? <a href="index.php">Login</a></p>
 </body>
 </html>

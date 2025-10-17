@@ -8,7 +8,7 @@ $name = $_GET['name'] ?? $_SESSION['full_name'] ?? 'Guest';
 $email = $_GET['email'] ?? $_SESSION['email'] ?? 'Not set';
 
 if (!$user_id) {
-    header('Location: ../citizen_portal/login.php');
+    header('Location: ../citizen_portal/index.php');
     exit;
 }
 

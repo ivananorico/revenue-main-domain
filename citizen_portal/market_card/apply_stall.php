@@ -2,8 +2,9 @@
 session_start();
 require_once '../../db/Market/market_db.php';
 
+// FIX: Redirect to index.php instead of login.php
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: ../../citizen_portal/index.php');
     exit;
 }
 
