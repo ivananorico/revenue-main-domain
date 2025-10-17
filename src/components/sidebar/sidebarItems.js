@@ -53,12 +53,12 @@ const sidebarItems = [
       {
         id: "submodule3",
         label: "Tax Collection Dashboard",
-        path: "/Treasury/Treasury1"
+        path: "/Treasury/Revenue"
       },
       {
         id: "submodule3",
-        label: "Revenue",
-        path: "/Treasury/Treasury2"
+        label: "Disbursement",
+        path: "/Treasury/Disbursement"
       },
       {
         id: "submodule3",
@@ -85,7 +85,7 @@ const sidebarItems = [
       {
         id: "submodule4",
         label: "Market Stall Rental Receitp",
-        path: "/Digital/Digital3"
+        path: "/Digital/MarketDig"
       }
     ]
   },

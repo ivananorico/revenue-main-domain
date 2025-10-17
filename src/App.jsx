@@ -16,13 +16,13 @@ import Business2 from './pages/Business/Business2'
 
 
 
-import Treasury1 from './pages/Treasury/Treasury1'
-import Treasury2 from './pages/Treasury/Treasury2'
+import Reveneu from './pages/Treasury/Revenue'
+import Disbursement from './pages/Treasury/Disbursement'
 import Treasury3 from './pages/Treasury/Treasury3'
 
 import Digital1 from './pages/Digital/Digital1'
 import Digital2 from './pages/Digital/Digital2'
-import Digital3 from './pages/Digital/Digital3'
+import MarketDig from './pages/Digital/MarketDig'
 
 import MarketCreator from './pages/Market/MapCreator/MapCreator'
 import MarketOutput from './pages/Market/MapCreator/MarketOutput'
@@ -34,7 +34,6 @@ import RenterDetails from './pages/Market/RentApproval/RenterDetails'
 
 import RenterRent from './pages/Market/RenterRent/RenterRent'
 import RenterStatus from './pages/Market/RenterRent/RenterStatus'
-
 
 
 
@@ -77,13 +76,13 @@ function App() {
 
 
               
-              <Route path="/Treasury/Treasury1" element={<Treasury1 />} />
-              <Route path="/Treasury/Treasury2" element={<Treasury2 />} />
+              <Route path="/Treasury/Revenue" element={<Reveneu />} />
+              <Route path="/Treasury/Disbursement" element={<Disbursement />} />
               <Route path="/Treasury/Treasury3" element={<Treasury3 />} />
 
               <Route path="/Digital/Digital1" element={<Digital1 />} />
               <Route path="/Digital/Digital2" element={<Digital2 />} />
-              <Route path="/Digital/Digital3" element={<Digital3 />} />
+              <Route path="/Digital/MarketDig" element={<MarketDig />} />
 
               <Route path="/Market/MarketCreator" element={<MarketCreator />} />
               <Route path="/Market/MarketOutput/view/:id" element={<MarketOutput />} />
