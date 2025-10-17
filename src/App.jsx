@@ -18,7 +18,7 @@ import Business2 from './pages/Business/Business2'
 
 import Reveneu from './pages/Treasury/Revenue'
 import Disbursement from './pages/Treasury/Disbursement'
-import Treasury3 from './pages/Treasury/Treasury3'
+import Report from './pages/Treasury/Report'
 
 import Digital1 from './pages/Digital/Digital1'
 import Digital2 from './pages/Digital/Digital2'
@@ -78,7 +78,7 @@ function App() {
               
               <Route path="/Treasury/Revenue" element={<Reveneu />} />
               <Route path="/Treasury/Disbursement" element={<Disbursement />} />
-              <Route path="/Treasury/Treasury3" element={<Treasury3 />} />
+              <Route path="/Treasury/Report" element={<Report />} />
 
               <Route path="/Digital/Digital1" element={<Digital1 />} />
               <Route path="/Digital/Digital2" element={<Digital2 />} />

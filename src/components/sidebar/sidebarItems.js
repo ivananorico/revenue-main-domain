@@ -63,7 +63,7 @@ const sidebarItems = [
       {
         id: "submodule3",
         label: "Report",
-        path: "/Treasury/Treasury3"
+        path: "/Treasury/Report"
       }
     ]
   },
