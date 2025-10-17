@@ -109,19 +109,19 @@ const RenterRent = () => {
   }, []);
 
   const getStatusBadge = (status) => {
-    return "status-badge status-active";
+    return "rr-status-badge rr-status-active";
   };
 
   const getPaymentStatusBadge = (status) => {
     switch (status?.toLowerCase()) {
       case "paid":
-        return "payment-badge payment-paid";
+        return "rr-payment-badge rr-payment-paid";
       case "pending":
-        return "payment-badge payment-pending";
+        return "rr-payment-badge rr-payment-pending";
       case "overdue":
-        return "payment-badge payment-overdue";
+        return "rr-payment-badge rr-payment-overdue";
       default:
-        return "payment-badge payment-pending";
+        return "rr-payment-badge rr-payment-pending";
     }
   };
 
@@ -211,7 +211,7 @@ const RenterRent = () => {
   const getSortIndicator = (field) => {
     if (sortField !== field) return null;
     return (
-      <span className="sort-indicator">
+      <span className="rr-sort-indicator">
         {sortDirection === "asc" ? "↑" : "↓"}
       </span>
     );
@@ -220,19 +220,19 @@ const RenterRent = () => {
   const hasActiveFilters = Object.values(filters).some(value => value !== "");
 
   return (
-    <div className="renters-container">
+    <div className="rr-container">
       {/* Header Section */}
-      <header className="renters-header">
-        <div className="header-content">
-          <h1 className="renters-title">Approved Renters</h1>
-          <p className="renters-subtitle">Manage and view all approved stall renters and their payment status</p>
+      <header className="rr-header">
+        <div className="rr-header-content">
+          <h1 className="rr-title">Approved Renters</h1>
+          <p className="rr-subtitle">Manage and view all approved stall renters and their payment status</p>
         </div>
         <button
           onClick={fetchRenters}
-          className="refresh-button"
+          className="rr-refresh-button"
           aria-label="Refresh renters"
         >
-          <svg className="refresh-icon" viewBox="0 0 24 24" fill="none">
+          <svg className="rr-refresh-icon" viewBox="0 0 24 24" fill="none">
             <path
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
               stroke="currentColor"
@@ -246,36 +246,36 @@ const RenterRent = () => {
       </header>
 
       {/* Filters Section */}
-      <section className="filters-section">
-        <div className="filters-header">
-          <h2 className="filters-title">Filters</h2>
+      <section className="rr-filters-section">
+        <div className="rr-filters-header">
+          <h2 className="rr-filters-title">Filters</h2>
           {hasActiveFilters && (
-            <button onClick={clearFilters} className="clear-filters-button">
+            <button onClick={clearFilters} className="rr-clear-filters-button">
               Clear All
             </button>
           )}
         </div>
         
-        <div className="filters-grid">
-          <div className="filter-group">
-            <label htmlFor="search-filter" className="filter-label">Search</label>
+        <div className="rr-filters-grid">
+          <div className="rr-filter-group">
+            <label htmlFor="search-filter" className="rr-filter-label">Search</label>
             <input
               id="search-filter"
               type="text"
               placeholder="Search by renter ID, business name, or renter name..."
               value={filters.search}
               onChange={(e) => handleFilterChange("search", e.target.value)}
-              className="filter-input"
+              className="rr-filter-input"
             />
           </div>
 
-          <div className="filter-group">
-            <label htmlFor="market-filter" className="filter-label">Market</label>
+          <div className="rr-filter-group">
+            <label htmlFor="market-filter" className="rr-filter-label">Market</label>
             <select
               id="market-filter"
               value={filters.market_name}
               onChange={(e) => handleFilterChange("market_name", e.target.value)}
-              className="filter-select"
+              className="rr-filter-select"
             >
               <option value="">All Markets</option>
               {uniqueMarkets.map(market => (
@@ -288,10 +288,10 @@ const RenterRent = () => {
         </div>
 
         {hasActiveFilters && (
-          <div className="active-filters">
-            <span className="active-filters-label">Active filters:</span>
+          <div className="rr-active-filters">
+            <span className="rr-active-filters-label">Active filters:</span>
             {filters.market_name && (
-              <span className="filter-tag">
+              <span className="rr-filter-tag">
                 Market: {filters.market_name}
                 <button 
                   onClick={() => handleFilterChange("market_name", "")}
@@ -302,7 +302,7 @@ const RenterRent = () => {
               </span>
             )}
             {filters.search && (
-              <span className="filter-tag">
+              <span className="rr-filter-tag">
                 Search: "{filters.search}"
                 <button 
                   onClick={() => handleFilterChange("search", "")}
@@ -317,131 +317,131 @@ const RenterRent = () => {
       </section>
 
       {/* Main Content Section */}
-      <main className="renters-main">
+      <main className="rr-main">
         {loading ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <p className="loading-text">Loading approved renters...</p>
+          <div className="rr-loading-state">
+            <div className="rr-loading-spinner"></div>
+            <p className="rr-loading-text">Loading approved renters...</p>
           </div>
         ) : error ? (
-          <div className="error-state">
-            <div className="error-icon">⚠️</div>
-            <div className="error-content">
-              <h3 className="error-title">Unable to load renters</h3>
-              <p className="error-message">{error}</p>
-              <button onClick={fetchRenters} className="retry-button">
+          <div className="rr-error-state">
+            <div className="rr-error-icon">⚠️</div>
+            <div className="rr-error-content">
+              <h3 className="rr-error-title">Unable to load renters</h3>
+              <p className="rr-error-message">{error}</p>
+              <button onClick={fetchRenters} className="rr-retry-button">
                 Try Again
               </button>
             </div>
           </div>
         ) : renters.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">🏪</div>
-            <h3 className="empty-title">No approved renters found</h3>
-            <p className="empty-message">
+          <div className="rr-empty-state">
+            <div className="rr-empty-icon">🏪</div>
+            <h3 className="rr-empty-title">No approved renters found</h3>
+            <p className="rr-empty-message">
               There are no approved renters in the system at this time.
             </p>
           </div>
         ) : (
-          <div className="table-container">
-            <div className="table-responsive">
-              <table className="renters-table">
-                <thead className="table-header">
+          <div className="rr-table-container">
+            <div className="rr-table-responsive">
+              <table className="rr-table">
+                <thead className="rr-table-header">
                   <tr>
                     <th
-                      className="table-header-cell sortable"
+                      className="rr-table-header-cell rr-sortable"
                       onClick={() => handleSort("renter_id")}
                     >
-                      <span className="header-content">
+                      <span className="rr-header-content">
                         Renter ID {getSortIndicator("renter_id")}
                       </span>
                     </th>
                     <th
-                      className="table-header-cell sortable"
+                      className="rr-table-header-cell rr-sortable"
                       onClick={() => handleSort("business_name")}
                     >
-                      <span className="header-content">
+                      <span className="rr-header-content">
                         Business Name {getSortIndicator("business_name")}
                       </span>
                     </th>
-                    <th className="table-header-cell">Renter Name</th>
-                    <th className="table-header-cell">Stall Location</th>
-                    <th className="table-header-cell">Status</th>
+                    <th className="rr-table-header-cell">Renter Name</th>
+                    <th className="rr-table-header-cell">Stall Location</th>
+                    <th className="rr-table-header-cell">Status</th>
                     <th
-                      className="table-header-cell sortable"
+                      className="rr-table-header-cell rr-sortable"
                       onClick={() => handleSort("next_payment_amount")}
                     >
-                      <span className="header-content">
+                      <span className="rr-header-content">
                         Next Payment {getSortIndicator("next_payment_amount")}
                       </span>
                     </th>
-                    <th className="table-header-cell">Payment Status</th>
-                    <th className="table-header-cell actions-header">Actions</th>
+                    <th className="rr-table-header-cell">Payment Status</th>
+                    <th className="rr-table-header-cell rr-actions-header">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="table-body">
+                <tbody className="rr-table-body">
                   {filteredAndSortedRenters.map((renter, index) => (
-                    <tr key={renter.id || index} className="table-row">
-                      <td className="table-cell renter-id">
-                        <div className="id-content">
+                    <tr key={renter.id || index} className="rr-table-row">
+                      <td className="rr-table-cell rr-renter-id">
+                        <div className="rr-id-content">
                           {renter.renter_id}
                         </div>
                       </td>
-                      <td className="table-cell business-info">
-                        <div className="business-name">
+                      <td className="rr-table-cell rr-business-info">
+                        <div className="rr-business-name">
                           {renter.business_name}
                         </div>
-                        <div className="business-section">
+                        <div className="rr-business-section">
                           {renter.section_name}
                         </div>
                       </td>
-                      <td className="table-cell renter-info">
-                        <div className="renter-name">
+                      <td className="rr-table-cell rr-renter-info">
+                        <div className="rr-renter-name">
                           {renter.full_name}
                         </div>
-                        <div className="renter-details">
+                        <div className="rr-renter-details">
                           <small>
                             {renter.first_name} {renter.middle_name ? renter.middle_name + ' ' : ''}{renter.last_name}
                           </small>
                         </div>
-                        <div className="renter-contact">
+                        <div className="rr-renter-contact">
                           {renter.contact_number}
                         </div>
                       </td>
-                      <td className="table-cell stall-info">
-                        <div className="stall-location">
+                      <td className="rr-table-cell rr-stall-info">
+                        <div className="rr-stall-location">
                           <strong>{renter.market_name} - {renter.stall_number}</strong>
                         </div>
-                        <div className="stall-class">
+                        <div className="rr-stall-class">
                           Class {renter.class_name}
                         </div>
                       </td>
-                      <td className="table-cell">
+                      <td className="rr-table-cell">
                         <span className={getStatusBadge(renter.status)}>
                           Approved
                         </span>
                       </td>
-                      <td className="table-cell payment-info">
-                        <div className="payment-amount">
+                      <td className="rr-table-cell rr-payment-info">
+                        <div className="rr-payment-amount">
                           {formatCurrency(renter.next_payment_amount)}
                         </div>
-                        <div className="payment-date">
+                        <div className="rr-payment-date">
                           Due: {formatDate(renter.next_payment_date)}
                         </div>
                       </td>
-                      <td className="table-cell">
+                      <td className="rr-table-cell">
                         <span className={getPaymentStatusBadge(renter.payment_status)}>
                           {formatPaymentStatus(renter.payment_status)}
                         </span>
                       </td>
-                      <td className="table-cell actions-cell">
+                      <td className="rr-table-cell rr-actions-cell">
                         <Link
                           to={`/Market/RenterStatus/${renter.renter_id}`}
-                          className="view-button"
+                          className="rr-view-button"
                           title="View renter details"
                         >
                           <svg
-                            className="button-icon"
+                            className="rr-button-icon"
                             viewBox="0 0 20 20"
                             fill="currentColor"
                           >
@@ -462,8 +462,8 @@ const RenterRent = () => {
             </div>
 
             {/* Table Footer */}
-            <footer className="table-footer">
-              <div className="table-summary">
+            <footer className="rr-table-footer">
+              <div className="rr-table-summary">
                 Showing {filteredAndSortedRenters.length} of {renters.length}{" "}
                 approved renters
                 {hasActiveFilters && " (filtered)"}

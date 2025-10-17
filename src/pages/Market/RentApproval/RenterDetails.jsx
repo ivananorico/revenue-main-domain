@@ -76,27 +76,21 @@ export default function RenterDetails() {
     }
   }, [id]);
 
+  // Helper Functions
   const getStatusBadge = (status) => {
-    if (!status) return "status-badge status-unknown";
+    if (!status) return "renter-status-badge renter-status-unknown";
     
-    switch (status.toLowerCase()) {
-      case "approved":
-        return "status-badge status-approved";
-      case "pending":
-        return "status-badge status-pending";
-      case "rejected":
-        return "status-badge status-rejected";
-      case "paid":
-        return "status-badge status-paid";
-      case "documents_submitted":
-        return "status-badge status-documents-submitted";
-      case "under_review":
-        return "status-badge status-under-review";
-      case "cancelled":
-        return "status-badge status-cancelled";
-      default:
-        return "status-badge status-unknown";
-    }
+    const statusMap = {
+      "approved": "renter-status-badge renter-status-approved",
+      "pending": "renter-status-badge renter-status-pending",
+      "rejected": "renter-status-badge renter-status-rejected",
+      "paid": "renter-status-badge renter-status-paid",
+      "documents_submitted": "renter-status-badge renter-status-documents-submitted",
+      "under_review": "renter-status-badge renter-status-under-review",
+      "cancelled": "renter-status-badge renter-status-cancelled"
+    };
+    
+    return statusMap[status.toLowerCase()] || "renter-status-badge renter-status-unknown";
   };
 
   const formatDate = (dateString) => {
@@ -206,6 +200,7 @@ export default function RenterDetails() {
     return fullUrl;
   };
 
+  // Action Handlers
   const handleProceedToPayment = async () => {
     if (!application) return;
 
@@ -360,14 +355,9 @@ export default function RenterDetails() {
     }
   };
 
-  const openProceedModal = () => {
-    setShowProceedModal(true);
-  };
-
-  const openApproveModal = () => {
-    setShowApproveModal(true);
-  };
-
+  // Modal Handlers
+  const openProceedModal = () => setShowProceedModal(true);
+  const openApproveModal = () => setShowApproveModal(true);
   const openRejectModal = () => {
     setReviewerNotes('');
     setShowRejectModal(true);
@@ -390,6 +380,7 @@ export default function RenterDetails() {
     setSelectedDocument(null);
   };
 
+  // Status Checkers
   const hasAllRequiredDocuments = () => {
     if (application?.status === 'documents_submitted') return true;
     
@@ -417,28 +408,30 @@ export default function RenterDetails() {
            status !== 'approved';
   };
 
+  // Loading State
   if (loading) {
     return (
-      <div className="renter-details-container">
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
+      <div className="renter-details">
+        <div className="renter-loading">
+          <div className="renter-loading-spinner"></div>
           <p>Loading application details...</p>
         </div>
       </div>
     );
   }
 
+  // Error State
   if (error) {
     return (
-      <div className="renter-details-container">
-        <div className="error-state">
+      <div className="renter-details">
+        <div className="renter-error">
           <h3>Unable to load application</h3>
           <p>{error}</p>
-          <div className="error-actions">
-            <button onClick={() => navigate(-1)} className="back-button">
+          <div className="renter-error-actions">
+            <button onClick={() => navigate(-1)} className="renter-back-btn">
               Go Back
             </button>
-            <button onClick={() => window.location.reload()} className="retry-button">
+            <button onClick={() => window.location.reload()} className="renter-retry-btn">
               Try Again
             </button>
           </div>
@@ -447,13 +440,14 @@ export default function RenterDetails() {
     );
   }
 
+  // No Application State
   if (!application) {
     return (
-      <div className="renter-details-container">
-        <div className="empty-state">
+      <div className="renter-details">
+        <div className="renter-empty">
           <h3>Application not found</h3>
           <p>The application you're looking for doesn't exist or you don't have permission to view it.</p>
-          <button onClick={() => navigate(-1)} className="back-button">
+          <button onClick={() => navigate(-1)} className="renter-back-btn">
             Go Back
           </button>
         </div>
@@ -466,176 +460,176 @@ export default function RenterDetails() {
   const businessPermitDocument = getDocument('business_permit');
 
   return (
-    <div className="renter-details-container">
+    <div className="renter-details">
       {/* Header */}
-      <div className="details-header">
-        <div className="header-content">
-          <div className="title-section">
-            <h1>{application.business_name || 'Business Application'}</h1>
-            <div className="application-meta">
-              <span className="application-id">Application #{application.id}</span>
+      <div className="renter-header">
+        <div className="renter-header-content">
+          <div className="renter-title-section">
+            <h1 className="renter-main-title">{application.business_name || 'Business Application'}</h1>
+            <div className="renter-meta">
+              <span className="renter-app-id">Application #{application.id}</span>
               <span className={getStatusBadge(application.status)}>
                 {application.status ? application.status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Unknown'}
               </span>
-              <span className="application-date">Applied on {formatDate(application.application_date)}</span>
+              <span className="renter-app-date">Applied on {formatDate(application.application_date)}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="details-content">
+      <div className="renter-content">
         
         {/* Application Status Card */}
-        <div className="info-card status-card">
-          <h3 className="card-title">Application Status</h3>
-          <div className="status-info">
-            <div className="status-item">
+        <div className="renter-card renter-status-card">
+          <h3 className="renter-card-title">Application Status</h3>
+          <div className="renter-status-info">
+            <div className="renter-status-item">
               <label>Current Status</label>
-              <div className="value">
+              <div className="renter-status-value">
                 <span className={getStatusBadge(application.status)}>
                   {application.status ? application.status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Unknown'}
                 </span>
               </div>
             </div>
-            <div className="status-item">
+            <div className="renter-status-item">
               <label>Application Date</label>
-              <div className="value">{formatDateTime(application.application_date)}</div>
+              <div className="renter-status-value">{formatDateTime(application.application_date)}</div>
             </div>
-            <div className="status-item">
+            <div className="renter-status-item">
               <label>Last Updated</label>
-              <div className="value">{formatDateTime(application.updated_at)}</div>
+              <div className="renter-status-value">{formatDateTime(application.updated_at)}</div>
             </div>
           </div>
         </div>
 
         {/* Payment Information */}
         {(application.status === 'paid' || application.status === 'documents_submitted') && paymentBreakdown && (
-          <div className="info-card payment-card">
-            <h3 className="card-title">Payment Information</h3>
-            <div className="payment-breakdown">
-              <div className="payment-item">
+          <div className="renter-card renter-payment-card">
+            <h3 className="renter-card-title">Payment Information</h3>
+            <div className="renter-payment-breakdown">
+              <div className="renter-payment-item">
                 <label>Application Fee:</label>
-                <span className="payment-amount">₱{paymentBreakdown.applicationFee.toLocaleString()}</span>
+                <span className="renter-payment-amount">₱{paymentBreakdown.applicationFee.toLocaleString()}</span>
               </div>
-              <div className="payment-item">
+              <div className="renter-payment-item">
                 <label>Security Bond:</label>
-                <span className="payment-amount">₱{paymentBreakdown.securityBond.toLocaleString()}</span>
+                <span className="renter-payment-amount">₱{paymentBreakdown.securityBond.toLocaleString()}</span>
               </div>
-              <div className="payment-item">
+              <div className="renter-payment-item">
                 <label>Stall Rights Fee (Class {application.class_name}):</label>
-                <span className="payment-amount">₱{paymentBreakdown.stallRightsFee.toLocaleString()}</span>
+                <span className="renter-payment-amount">₱{paymentBreakdown.stallRightsFee.toLocaleString()}</span>
               </div>
-              <div className="payment-item total">
+              <div className="renter-payment-item renter-payment-total">
                 <label>Total Amount Due:</label>
-                <span className="payment-amount total-amount">₱{paymentBreakdown.total.toLocaleString()}</span>
+                <span className="renter-payment-amount renter-total-amount">₱{paymentBreakdown.total.toLocaleString()}</span>
               </div>
             </div>
           </div>
         )}
 
         {/* Applicant & Business Info Side by Side */}
-        <div className="content-row">
+        <div className="renter-content-row">
           {/* Applicant Information */}
-          <div className="info-card">
-            <h3 className="card-title">Applicant Information</h3>
-            <div className="info-grid">
-              <div className="info-item">
+          <div className="renter-card">
+            <h3 className="renter-card-title">Applicant Information</h3>
+            <div className="renter-info-grid">
+              <div className="renter-info-item">
                 <label>Full Name</label>
-                <div className="value">{application.full_name || 'N/A'}</div>
+                <div className="renter-info-value">{application.full_name || 'N/A'}</div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>First Name</label>
-                <div className="value">{application.first_name || 'N/A'}</div>
+                <div className="renter-info-value">{application.first_name || 'N/A'}</div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Middle Name</label>
-                <div className="value">{application.middle_name || 'N/A'}</div>
+                <div className="renter-info-value">{application.middle_name || 'N/A'}</div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Last Name</label>
-                <div className="value">{application.last_name || 'N/A'}</div>
+                <div className="renter-info-value">{application.last_name || 'N/A'}</div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Gender</label>
-                <div className="value">{application.gender || 'N/A'}</div>
+                <div className="renter-info-value">{application.gender || 'N/A'}</div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Date of Birth</label>
-                <div className="value">{formatDate(application.date_of_birth)}</div>
+                <div className="renter-info-value">{formatDate(application.date_of_birth)}</div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Civil Status</label>
-                <div className="value">{application.civil_status || 'N/A'}</div>
+                <div className="renter-info-value">{application.civil_status || 'N/A'}</div>
               </div>
-              <div className="info-item full-width">
+              <div className="renter-info-item renter-info-full">
                 <label>Complete Address</label>
-                <div className="value">
+                <div className="renter-info-value">
                   {application.formatted_address || application.address || 'No address provided'}
                 </div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Contact Number</label>
-                <div className="value">{application.contact_number || 'N/A'}</div>
+                <div className="renter-info-value">{application.contact_number || 'N/A'}</div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Email</label>
-                <div className="value">{application.email || 'N/A'}</div>
+                <div className="renter-info-value">{application.email || 'N/A'}</div>
               </div>
             </div>
           </div>
 
           {/* Business & Stall Information */}
-          <div className="info-card">
-            <h3 className="card-title">Business & Stall Details</h3>
-            <div className="info-grid">
-              <div className="info-item">
+          <div className="renter-card">
+            <h3 className="renter-card-title">Business & Stall Details</h3>
+            <div className="renter-info-grid">
+              <div className="renter-info-item">
                 <label>Business Name</label>
-                <div className="value">{application.business_name || 'N/A'}</div>
+                <div className="renter-info-value">{application.business_name || 'N/A'}</div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Application Type</label>
-                <div className="value">
-                  <span className={`application-type type-${application.application_type}`}>
+                <div className="renter-info-value">
+                  <span className={`renter-app-type renter-app-type-${application.application_type}`}>
                     {application.application_type?.charAt(0).toUpperCase() + 
                      application.application_type?.slice(1) || 'N/A'}
                   </span>
                 </div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Market Name</label>
-                <div className="value">{application.market_name || 'N/A'}</div>
+                <div className="renter-info-value">{application.market_name || 'N/A'}</div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Market Section</label>
-                <div className="value">{application.section_name || application.market_section || 'N/A'}</div>
+                <div className="renter-info-value">{application.section_name || application.market_section || 'N/A'}</div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Stall Number</label>
-                <div className="value">{application.stall_number || 'N/A'}</div>
+                <div className="renter-info-value">{application.stall_number || 'N/A'}</div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Stall Class</label>
-                <div className="value">{application.class_name ? `Class ${application.class_name}` : 'N/A'}</div>
+                <div className="renter-info-value">{application.class_name ? `Class ${application.class_name}` : 'N/A'}</div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Monthly Rent</label>
-                <div className="value">
+                <div className="renter-info-value">
                   {application.stall_price ? `₱${parseFloat(application.stall_price).toLocaleString()}` : 'N/A'}
                 </div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Stall Dimensions</label>
-                <div className="value">
+                <div className="renter-info-value">
                   {application.length && application.width && application.height 
                     ? `${application.length}m × ${application.width}m × ${application.height}m`
                     : 'N/A'
                   }
                 </div>
               </div>
-              <div className="info-item">
+              <div className="renter-info-item">
                 <label>Stall Status</label>
-                <div className="value">
+                <div className="renter-info-value">
                   <span className={getStatusBadge(application.stall_status)}>
                     {application.stall_status?.charAt(0).toUpperCase() + 
                      application.stall_status?.slice(1) || 'N/A'}
@@ -647,30 +641,30 @@ export default function RenterDetails() {
         </div>
 
         {/* Documents Section */}
-        <div className="info-card">
-          <h3 className="card-title">Supporting Documents</h3>
+        <div className="renter-card">
+          <h3 className="renter-card-title">Supporting Documents</h3>
           
           {/* Required Documents Section */}
           {(application.status === 'paid' || application.status === 'documents_submitted') && (
-            <div className="required-documents-section">
-              <h4 className="sub-section-title">Required Documents for Approval</h4>
+            <div className="renter-required-documents">
+              <h4 className="renter-sub-title">Required Documents for Approval</h4>
               
               {/* Lease of Contract */}
-              <div className={`document-section ${hasDocument('lease_contract') ? 'document-uploaded' : 'document-missing'}`}>
-                <div className="document-header">
-                  <div className="document-title">
-                    <span className="document-icon">📑</span>
+              <div className={`renter-document-section ${hasDocument('lease_contract') ? 'renter-document-uploaded' : 'renter-document-missing'}`}>
+                <div className="renter-document-header">
+                  <div className="renter-document-title">
+                    <span className="renter-document-icon">📑</span>
                     Lease of Contract
                   </div>
-                  <div className={`document-status ${hasDocument('lease_contract') ? 'status-uploaded' : 'status-missing'}`}>
+                  <div className={`renter-document-status ${hasDocument('lease_contract') ? 'renter-status-uploaded' : 'renter-status-missing'}`}>
                     {hasDocument('lease_contract') ? '✅ Uploaded' : '❌ Missing'}
                   </div>
                 </div>
                 {leaseContractDocument ? (
-                  <div className="document-item highlighted">
-                    <div className="document-info">
-                      <div className="document-name">{leaseContractDocument.file_name || 'Lease of Contract'}</div>
-                      <div className="document-meta">
+                  <div className="renter-document-item renter-document-highlighted">
+                    <div className="renter-document-info">
+                      <div className="renter-document-name">{leaseContractDocument.file_name || 'Lease of Contract'}</div>
+                      <div className="renter-document-meta">
                         {leaseContractDocument.file_extension?.toUpperCase()} • 
                         {leaseContractDocument.file_size ? ` ${(leaseContractDocument.file_size / 1024).toFixed(1)} KB` : ' Size unknown'} • 
                         {formatDate(leaseContractDocument.uploaded_at)}
@@ -678,34 +672,34 @@ export default function RenterDetails() {
                     </div>
                     <button 
                       onClick={() => openDocumentModal(leaseContractDocument)}
-                      className="view-document-button"
+                      className="renter-view-doc-btn"
                     >
                       View
                     </button>
                   </div>
                 ) : (
-                  <div className="document-missing-message">
+                  <div className="renter-document-missing-msg">
                     Applicant needs to upload the signed Lease of Contract document.
                   </div>
                 )}
               </div>
 
               {/* Business Permit */}
-              <div className={`document-section ${hasDocument('business_permit') ? 'document-uploaded' : 'document-missing'}`}>
-                <div className="document-header">
-                  <div className="document-title">
-                    <span className="document-icon">🏢</span>
+              <div className={`renter-document-section ${hasDocument('business_permit') ? 'renter-document-uploaded' : 'renter-document-missing'}`}>
+                <div className="renter-document-header">
+                  <div className="renter-document-title">
+                    <span className="renter-document-icon">🏢</span>
                     Business Permit
                   </div>
-                  <div className={`document-status ${hasDocument('business_permit') ? 'status-uploaded' : 'status-missing'}`}>
+                  <div className={`renter-document-status ${hasDocument('business_permit') ? 'renter-status-uploaded' : 'renter-status-missing'}`}>
                     {hasDocument('business_permit') ? '✅ Uploaded' : '❌ Missing'}
                   </div>
                 </div>
                 {businessPermitDocument ? (
-                  <div className="document-item highlighted">
-                    <div className="document-info">
-                      <div className="document-name">{businessPermitDocument.file_name || 'Business Permit'}</div>
-                      <div className="document-meta">
+                  <div className="renter-document-item renter-document-highlighted">
+                    <div className="renter-document-info">
+                      <div className="renter-document-name">{businessPermitDocument.file_name || 'Business Permit'}</div>
+                      <div className="renter-document-meta">
                         {businessPermitDocument.file_extension?.toUpperCase()} • 
                         {businessPermitDocument.file_size ? ` ${(businessPermitDocument.file_size / 1024).toFixed(1)} KB` : ' Size unknown'} • 
                         {formatDate(businessPermitDocument.uploaded_at)}
@@ -713,13 +707,13 @@ export default function RenterDetails() {
                     </div>
                     <button 
                       onClick={() => openDocumentModal(businessPermitDocument)}
-                      className="view-document-button"
+                      className="renter-view-doc-btn"
                     >
                       View
                     </button>
                   </div>
                 ) : (
-                  <div className="document-missing-message">
+                  <div className="renter-document-missing-msg">
                     Applicant needs to upload a valid Business Permit.
                   </div>
                 )}
@@ -727,9 +721,9 @@ export default function RenterDetails() {
 
               {/* Approval Requirement Notice */}
               {!hasAllRequiredDocuments() && application.status === 'paid' && (
-                <div className="approval-notice">
-                  <div className="notice-icon">⚠️</div>
-                  <div className="notice-content">
+                <div className="renter-approval-notice">
+                  <div className="renter-notice-icon">⚠️</div>
+                  <div className="renter-notice-content">
                     <strong>Approval Requirements Not Met</strong>
                     <p>Both Lease of Contract and Business Permit must be uploaded before this application can be approved.</p>
                   </div>
@@ -738,9 +732,9 @@ export default function RenterDetails() {
 
               {/* Documents Submitted Notice */}
               {application.status === 'documents_submitted' && (
-                <div className="documents-submitted-notice">
-                  <div className="notice-icon">✅</div>
-                  <div className="notice-content">
+                <div className="renter-docs-submitted-notice">
+                  <div className="renter-notice-icon">✅</div>
+                  <div className="renter-notice-content">
                     <strong>All Required Documents Submitted</strong>
                     <p>The applicant has uploaded both required documents. You can now proceed with approval.</p>
                   </div>
@@ -750,21 +744,21 @@ export default function RenterDetails() {
           )}
 
           {/* Regular Documents */}
-          <div className="regular-documents-section">
-            <h4 className="sub-section-title">Other Supporting Documents</h4>
+          <div className="renter-regular-documents">
+            <h4 className="renter-sub-title">Other Supporting Documents</h4>
             {application.documents && application.documents.length > 0 ? (
-              <div className="documents-grid">
+              <div className="renter-documents-grid">
                 {application.documents
                   .filter(doc => (application.status !== 'paid' && application.status !== 'documents_submitted') || 
                           (doc.document_type !== 'lease_contract' && doc.document_type !== 'business_permit'))
                   .map((doc, index) => (
-                  <div key={doc.id || index} className="document-item">
-                    <div className="document-icon">
+                  <div key={doc.id || index} className="renter-document-item">
+                    <div className="renter-doc-icon">
                       {getFileIcon(doc.file_extension)}
                     </div>
-                    <div className="document-info">
-                      <div className="document-name">{doc.file_name || 'Unnamed Document'}</div>
-                      <div className="document-meta">
+                    <div className="renter-document-info">
+                      <div className="renter-document-name">{doc.file_name || 'Unnamed Document'}</div>
+                      <div className="renter-document-meta">
                         {getDocumentDisplayName(doc.document_type).toUpperCase()} • 
                         {doc.file_size ? ` ${(doc.file_size / 1024).toFixed(1)} KB` : ' Size unknown'} • 
                         {formatDate(doc.uploaded_at)}
@@ -772,7 +766,7 @@ export default function RenterDetails() {
                     </div>
                     <button 
                       onClick={() => openDocumentModal(doc)}
-                      className="view-document-button"
+                      className="renter-view-doc-btn"
                     >
                       View
                     </button>
@@ -780,7 +774,7 @@ export default function RenterDetails() {
                 ))}
               </div>
             ) : (
-              <div className="no-documents">
+              <div className="renter-no-documents">
                 No other documents uploaded for this application.
               </div>
             )}
@@ -790,11 +784,11 @@ export default function RenterDetails() {
       </div>
 
       {/* Action Buttons */}
-      <div className="action-buttons">
-        <div className="action-group">
+      <div className="renter-actions">
+        <div className="renter-action-group">
           <button 
             onClick={() => navigate(-1)} 
-            className="secondary-button"
+            className="renter-secondary-btn"
             disabled={actionLoading}
           >
             Back to List
@@ -802,18 +796,18 @@ export default function RenterDetails() {
           {application.status !== 'approved' && application.status !== 'rejected' && application.status !== 'paid' && application.status !== 'documents_submitted' && (
             <button 
               onClick={handleResubmit} 
-              className="resubmit-button"
+              className="renter-resubmit-btn"
               disabled={actionLoading}
             >
               {actionLoading ? 'Processing...' : 'Resubmit Application'}
             </button>
           )}
         </div>
-        <div className="action-group">
+        <div className="renter-action-group">
           {application.status !== 'rejected' && application.status !== 'approved' && (
             <button 
               onClick={openRejectModal} 
-              className="reject-button"
+              className="renter-reject-btn"
               disabled={actionLoading}
             >
               Reject
@@ -822,7 +816,7 @@ export default function RenterDetails() {
           {shouldShowApproveButton() && (
             <button 
               onClick={openApproveModal} 
-              className="approve-button"
+              className="renter-approve-btn"
               disabled={actionLoading || !hasAllRequiredDocuments()}
               title={!hasAllRequiredDocuments() ? 'Both Lease Contract and Business Permit must be uploaded before approval' : ''}
             >
@@ -832,7 +826,7 @@ export default function RenterDetails() {
           {shouldShowProceedNext() && (
             <button 
               onClick={openProceedModal} 
-              className="proceed-button"
+              className="renter-proceed-btn"
               disabled={actionLoading}
             >
               Proceed Next
@@ -841,15 +835,16 @@ export default function RenterDetails() {
         </div>
       </div>
 
+      {/* Modals */}
       {/* Proceed Next Modal */}
       {showProceedModal && (
-        <div className="modal-overlay" onClick={closeModals}>
-          <div className="modal-content action-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="renter-modal-overlay" onClick={closeModals}>
+          <div className="renter-modal renter-action-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="renter-modal-header">
               <h3>Proceed to Paid Status</h3>
-              <button className="modal-close" onClick={closeModals}>×</button>
+              <button className="renter-modal-close" onClick={closeModals}>×</button>
             </div>
-            <div className="modal-body">
+            <div className="renter-modal-body">
               <p>Are you sure you want to move this application to Paid Status?</p>
               <p><strong>This will:</strong></p>
               <ul>
@@ -859,13 +854,13 @@ export default function RenterDetails() {
                 <li>Require the applicant to upload Lease of Contract and Business Permit</li>
               </ul>
             </div>
-            <div className="modal-footer">
-              <button onClick={closeModals} className="close-modal-button">
+            <div className="renter-modal-footer">
+              <button onClick={closeModals} className="renter-close-modal-btn">
                 Cancel
               </button>
               <button 
                 onClick={handleProceedToPayment} 
-                className="proceed-button"
+                className="renter-proceed-btn"
                 disabled={actionLoading}
               >
                 {actionLoading ? 'Processing...' : 'Confirm Proceed'}
@@ -877,35 +872,35 @@ export default function RenterDetails() {
 
       {/* Approve Modal */}
       {showApproveModal && (
-        <div className="modal-overlay" onClick={closeModals}>
-          <div className="modal-content action-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="renter-modal-overlay" onClick={closeModals}>
+          <div className="renter-modal renter-action-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="renter-modal-header">
               <h3>Approve Application</h3>
-              <button className="modal-close" onClick={closeModals}>×</button>
+              <button className="renter-modal-close" onClick={closeModals}>×</button>
             </div>
-            <div className="modal-body">
+            <div className="renter-modal-body">
               <p>Are you sure you want to approve this application?</p>
               
               {/* Document Check Summary */}
-              <div className="document-check-summary">
+              <div className="renter-doc-check-summary">
                 <h4>Document Status:</h4>
-                <div className={`check-item ${hasDocument('lease_contract') ? 'check-valid' : 'check-invalid'}`}>
+                <div className={`renter-check-item ${hasDocument('lease_contract') ? 'renter-check-valid' : 'renter-check-invalid'}`}>
                   {hasDocument('lease_contract') ? '✅' : '❌'} Lease of Contract
                 </div>
-                <div className={`check-item ${hasDocument('business_permit') ? 'check-valid' : 'check-invalid'}`}>
+                <div className={`renter-check-item ${hasDocument('business_permit') ? 'renter-check-valid' : 'renter-check-invalid'}`}>
                   {hasDocument('business_permit') ? '✅' : '❌'} Business Permit
                 </div>
               </div>
 
               {!hasAllRequiredDocuments() && (
-                <div className="approval-warning">
+                <div className="renter-approval-warning">
                   <strong>⚠️ Warning:</strong> Not all required documents are uploaded. 
                   You can still approve, but this may require follow-up.
                 </div>
               )}
 
               {application.status === 'documents_submitted' && (
-                <div className="documents-ready-notice">
+                <div className="renter-docs-ready-notice">
                   <strong>✅ All Documents Ready:</strong> The applicant has submitted all required documents.
                 </div>
               )}
@@ -918,13 +913,13 @@ export default function RenterDetails() {
                 <li>Complete the application process</li>
               </ul>
             </div>
-            <div className="modal-footer">
-              <button onClick={closeModals} className="close-modal-button">
+            <div className="renter-modal-footer">
+              <button onClick={closeModals} className="renter-close-modal-btn">
                 Cancel
               </button>
               <button 
                 onClick={handleApprove} 
-                className="approve-button"
+                className="renter-approve-btn"
                 disabled={actionLoading}
               >
                 {actionLoading ? 'Processing...' : 'Confirm Approval'}
@@ -936,15 +931,15 @@ export default function RenterDetails() {
 
       {/* Reject Modal */}
       {showRejectModal && (
-        <div className="modal-overlay" onClick={closeModals}>
-          <div className="modal-content action-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="renter-modal-overlay" onClick={closeModals}>
+          <div className="renter-modal renter-action-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="renter-modal-header">
               <h3>Reject Application</h3>
-              <button className="modal-close" onClick={closeModals}>×</button>
+              <button className="renter-modal-close" onClick={closeModals}>×</button>
             </div>
-            <div className="modal-body">
+            <div className="renter-modal-body">
               <p>Are you sure you want to reject this application?</p>
-              <div className="notes-input">
+              <div className="renter-notes-input">
                 <label>Reason for Rejection (Required):</label>
                 <textarea
                   value={reviewerNotes}
@@ -955,13 +950,13 @@ export default function RenterDetails() {
                 />
               </div>
             </div>
-            <div className="modal-footer">
-              <button onClick={closeModals} className="close-modal-button">
+            <div className="renter-modal-footer">
+              <button onClick={closeModals} className="renter-close-modal-btn">
                 Cancel
               </button>
               <button 
                 onClick={handleReject} 
-                className="reject-button"
+                className="renter-reject-btn"
                 disabled={actionLoading || !reviewerNotes.trim()}
               >
                 {actionLoading ? 'Rejecting...' : 'Confirm Rejection'}
@@ -973,50 +968,50 @@ export default function RenterDetails() {
 
       {/* Document Modal */}
       {showModal && selectedDocument && (
-        <div className="modal-overlay" onClick={closeDocumentModal}>
-          <div className="modal-content document-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="renter-modal-overlay" onClick={closeDocumentModal}>
+          <div className="renter-modal renter-doc-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="renter-modal-header">
               <h3>{selectedDocument.file_name || 'Document'}</h3>
-              <button className="modal-close" onClick={closeDocumentModal}>×</button>
+              <button className="renter-modal-close" onClick={closeDocumentModal}>×</button>
             </div>
-            <div className="modal-body">
-              <div className="document-info-bar">
-                <span className="document-type">
+            <div className="renter-modal-body">
+              <div className="renter-doc-info-bar">
+                <span className="renter-doc-type">
                   {getDocumentDisplayName(selectedDocument.document_type)}
                 </span>
-                <span className="document-size">
+                <span className="renter-doc-size">
                   {selectedDocument.file_size ? `Size: ${(selectedDocument.file_size / 1024).toFixed(1)} KB` : ''}
                 </span>
-                <span className="document-date">
+                <span className="renter-doc-date">
                   Uploaded: {formatDate(selectedDocument.uploaded_at)}
                 </span>
               </div>
               
-              <div className="document-viewer">
+              <div className="renter-doc-viewer">
                 {selectedDocument.file_extension?.toLowerCase() === 'pdf' ? (
                   <iframe 
                     src={getDocumentUrl(selectedDocument)} 
-                    className="document-iframe"
+                    className="renter-doc-iframe"
                     title={selectedDocument.file_name || 'Document'}
                     onError={(e) => {
                       e.target.style.display = 'none';
-                      document.querySelector('.document-error').style.display = 'block';
+                      document.querySelector('.renter-doc-error').style.display = 'block';
                     }}
                   />
                 ) : (
                   <img 
                     src={getDocumentUrl(selectedDocument)} 
                     alt={selectedDocument.file_name || 'Document'}
-                    className="document-image"
+                    className="renter-doc-image"
                     onError={(e) => {
                       e.target.style.display = 'none';
-                      document.querySelector('.document-error').style.display = 'block';
+                      document.querySelector('.renter-doc-error').style.display = 'block';
                     }}
                   />
                 )}
-                <div className="document-error" style={{display: 'none'}}>
-                  <div className="error-content">
-                    <div className="error-icon">❌</div>
+                <div className="renter-doc-error" style={{display: 'none'}}>
+                  <div className="renter-error-content">
+                    <div className="renter-error-icon">❌</div>
                     <h4>Unable to Load Document</h4>
                     <p>The document could not be loaded. This could be due to:</p>
                     <ul>
@@ -1026,7 +1021,7 @@ export default function RenterDetails() {
                     </ul>
                     <button 
                       onClick={() => window.open(getDocumentUrl(selectedDocument), '_blank')}
-                      className="open-external-button"
+                      className="renter-open-external-btn"
                     >
                       Try Opening in New Tab
                     </button>
@@ -1034,14 +1029,14 @@ export default function RenterDetails() {
                 </div>
               </div>
             </div>
-            <div className="modal-footer">
+            <div className="renter-modal-footer">
               <button 
                 onClick={() => window.open(getDocumentUrl(selectedDocument), '_blank')}
-                className="open-external-button"
+                className="renter-open-external-btn"
               >
                 🔗 Open in New Tab
               </button>
-              <button onClick={closeDocumentModal} className="close-modal-button">
+              <button onClick={closeDocumentModal} className="renter-close-modal-btn">
                 Close
               </button>
             </div>
