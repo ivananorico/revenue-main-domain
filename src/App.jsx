@@ -7,7 +7,8 @@ import SecuritySettings from './pages/settings/Security'
 import Header from './components/header/Header'
 import sidebarItems from './components/sidebar/sidebarItems'
 
-import RPT1 from './pages/RPT/RPT1'
+import RPTAssess from './pages/RPT/RPTAssess'
+import RPTDetails from './pages/RPT/RPTDetails'
 import RPT2 from './pages/RPT/RPT2'
 
 import Business1 from './pages/Business/Business1'
@@ -66,7 +67,8 @@ function App() {
           <main className="flex-1 overflow-auto p-8 dark:bg-slate-800">
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/RPT/RPT1" element={<RPT1 />} />
+              <Route path="/RPT/RPTAssess" element={<RPTAssess />} />
+              <Route path="/RPT/RPTDetails/:id" element={<RPTDetails />} />
               <Route path="/RPT/RPT2" element={<RPT2 />} />
              
 

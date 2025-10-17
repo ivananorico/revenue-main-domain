@@ -15,8 +15,9 @@ const sidebarItems = [
       {
         id: "submodule1",
         label: "Real Property Assessment",
-        path: "/RPT/RPT1"
+        path: "/RPT/RPTAssess"
       },
+
       {
         id: "submodule1",
         label: "Real Property Dashboard",

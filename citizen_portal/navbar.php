@@ -5,10 +5,24 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Handle logout via ?logout=true
-if (isset($_GET['logout'])) {
+if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
+    // Clear all session variables
+    $_SESSION = array();
+    
+    // Destroy the session
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+    }
+    
     session_destroy();
-    header('Location: login.php');
-    exit;
+    
+    // Redirect to login page
+    header("Location: http://" . $_SERVER['HTTP_HOST'] . "/revenue/citizen_portal/login.php");
+    exit();
 }
 
 // Get logged-in user name

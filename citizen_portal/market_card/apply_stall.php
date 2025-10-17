@@ -19,7 +19,8 @@ try {
                s.status AS stall_status,
                m.name AS market_name,
                sr.class_name,
-               sec.name AS section_name
+               sec.name AS section_name,
+               CONCAT(a.first_name, ' ', COALESCE(a.middle_name, ''), ' ', a.last_name) AS full_name
         FROM applications a
         LEFT JOIN stalls s ON a.stall_id = s.id
         LEFT JOIN maps m ON s.map_id = m.id
@@ -45,7 +46,8 @@ if ($application && $application['status'] === 'approved') {
     try {
         // Get renter information
         $stmt = $pdo->prepare("
-            SELECT r.* 
+            SELECT r.*,
+                   CONCAT(r.first_name, ' ', COALESCE(r.middle_name, ''), ' ', r.last_name) AS full_name
             FROM renters r 
             WHERE r.application_id = :application_id
         ");
@@ -74,7 +76,7 @@ if ($application && $application['status'] === 'approved') {
                 ORDER BY due_date ASC 
                 LIMIT 1
             ");
-            $stmt->bindParam(':renter_id', $renter['renter_id']); // Use renter_id, not id
+            $stmt->bindParam(':renter_id', $renter['renter_id']);
             $stmt->execute();
             $nextMonthPayment = $stmt->fetch();
         }

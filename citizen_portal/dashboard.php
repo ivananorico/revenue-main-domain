@@ -42,7 +42,7 @@ $email = $_SESSION['email'];
             </div>
 
             <!-- Real Property Register and Tax Card -->
-            <div class="card" onclick="location.href='real-property/register.php'">
+            <div class="card" onclick="location.href='rpt_card/rpt_dashboard.php'">
                 <div class="card-icon">🏠</div>
                 <h3>Real Property Register & Tax</h3>
                 <p>Register properties, calculate taxes, and view property records</p>
