@@ -16,22 +16,80 @@ $user_id = $_SESSION['user_id'];
 // Database connection
 require_once '../../db/Market/market_db.php';
 
-// Get the latest application ID for this user
+// Get the latest application with status for this user
 $application_id = null;
+$application_status = null;
 $has_application = false;
 
 try {
-    $stmt = $pdo->prepare("SELECT id FROM applications WHERE user_id = ? ORDER BY application_date DESC LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, status FROM applications WHERE user_id = ? ORDER BY application_date DESC LIMIT 1");
     $stmt->execute([$user_id]);
     $application = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if ($application) {
         $application_id = $application['id'];
+        $application_status = $application['status'];
         $has_application = true;
     }
 } catch (PDOException $e) {
     // Handle error silently or log it
     error_log("Database error: " . $e->getMessage());
+}
+
+// Function to get the correct view documents file based on status
+function getViewDocumentsPath($status) {
+    switch ($status) {
+        case 'paid':
+            return 'view_documents/view_paid.php';
+        case 'payment_phase':
+            return 'view_documents/view_payment_phase.php';
+        case 'documents_submitted':
+            return 'view_documents/view_documents_submitted.php';
+        case 'approved':
+            return 'view_documents/view_approved.php';
+        case 'pending':
+        default:
+            return 'view_documents/view_pending.php';
+    }
+}
+
+// Function to get status color
+function getStatusColor($status) {
+    switch ($status) {
+        case 'paid':
+            return 'text-green-600';
+        case 'payment_phase':
+            return 'text-yellow-600';
+        case 'documents_submitted':
+            return 'text-purple-600';
+        case 'approved':
+            return 'text-blue-600';
+        case 'pending':
+            return 'text-blue-600';
+        case 'rejected':
+            return 'text-red-600';
+        case 'cancelled':
+            return 'text-gray-600';
+        case 'expired':
+            return 'text-orange-600';
+        default:
+            return 'text-gray-600';
+    }
+}
+
+// Function to get status description
+function getStatusDescription($status) {
+    $descriptions = [
+        'pending' => 'Your application is under review. Please check back later for updates.',
+        'approved' => 'Your application has been approved! Please proceed to the next step.',
+        'payment_phase' => 'Your application is ready for payment. Please proceed with the payment process.',
+        'paid' => 'Payment completed! You can now view and manage your documents.',
+        'documents_submitted' => 'All documents have been submitted. Final review in progress.',
+        'rejected' => 'Your application was not approved. Please contact support for more information.',
+        'cancelled' => 'This application has been cancelled.',
+        'expired' => 'This application has expired. Please submit a new application.'
+    ];
+    return $descriptions[$status] ?? 'Application is being processed.';
 }
 
 // Set correct paths for navbar
@@ -90,10 +148,20 @@ $login_path = '../index.php';
                     <p class="text-gray-600 mb-6">Access your application documents, permits, and rental agreements</p>
                     
                     <?php if ($has_application): ?>
-                        <button onclick="location.href='view_documents/view_documents.php?application_id=<?= $application_id ?>'" 
+                        <?php 
+                        $view_documents_path = getViewDocumentsPath($application_status);
+                        $status_color = getStatusColor($application_status);
+                        ?>
+                        <button onclick="location.href='<?= $view_documents_path ?>?application_id=<?= $application_id ?>'" 
                                 class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
                             View Documents
                         </button>
+                        <p class="text-sm text-gray-500 mt-2">
+                            Status: 
+                            <span class="font-semibold <?= $status_color ?>">
+                                <?= ucfirst(str_replace('_', ' ', $application_status)) ?>
+                            </span>
+                        </p>
                     <?php else: ?>
                         <button onclick="alert('No application found. Please apply for a stall first.')" 
                                 class="w-full bg-gray-400 cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
@@ -135,7 +203,15 @@ $login_path = '../index.php';
         <div class="max-w-2xl mx-auto mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
             <h3 class="text-lg font-semibold text-blue-800 mb-2">Current Application</h3>
             <p class="text-blue-700">You have an active application (ID: <?= $application_id ?>)</p>
-            <p class="text-sm text-blue-600 mt-1">Click "View Documents" to see your application details and uploaded files.</p>
+            <p class="text-blue-600 mt-1">
+                <strong>Status:</strong> 
+                <span class="font-semibold <?= getStatusColor($application_status) ?>">
+                    <?= ucfirst(str_replace('_', ' ', $application_status)) ?>
+                </span>
+            </p>
+            <p class="text-sm text-blue-600 mt-2">
+                <?= getStatusDescription($application_status) ?>
+            </p>
         </div>
         <?php endif; ?>
     </div>
