@@ -5,131 +5,71 @@ require_once '../db/user_db.php';
 $login_message = '';
 $register_message = '';
 
-// Handle login
+// Hardcoded admin credentials
+$admin_email = 'admin@gmail.com';
+$admin_password = 'admin';
+
+// Function to verify reCAPTCHA
+function verifyRecaptcha($recaptcha_response) {
+    $secret = "6Lcyyu0rAAAAABPZoWsEg4vPWb0aYLfhmPgYYYgY";
+    if (empty($recaptcha_response)) return false;
+
+    $url = 'https://www.google.com/recaptcha/api/siteverify';
+    $data = [
+        'secret' => $secret,
+        'response' => $recaptcha_response,
+        'remoteip' => $_SERVER['REMOTE_ADDR']
+    ];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    $json = json_decode($result);
+    return $json && $json->success;
+}
+
+// Handle Login
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'])) {
-    // Verify reCAPTCHA first
-    $recaptcha_secret = "6Lcyyu0rAAAAABPZoWsEg4vPWb0aYLfhmPgYYYgY";
+    $email = trim($_POST['login_email']);
+    $password = $_POST['login_password'];
     $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
-    
-    if (empty($recaptcha_response)) {
-        $login_message = "Please complete the reCAPTCHA verification!";
+
+    // Verify reCAPTCHA first
+    if (!verifyRecaptcha($recaptcha_response)) {
+        $login_message = "reCAPTCHA verification failed. Please try again.";
     } else {
-        $recaptcha_url = 'https://www.google.com/recaptcha/api/siteverify';
-        $recaptcha_data = [
-            'secret' => $recaptcha_secret,
-            'response' => $recaptcha_response,
-            'remoteip' => $_SERVER['REMOTE_ADDR']
-        ];
-        
-        // Use cURL instead of file_get_contents for better handling
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $recaptcha_url);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($recaptcha_data));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/x-www-form-urlencoded'
-        ]);
-        
-        $recaptcha_result = curl_exec($ch);
-        curl_close($ch);
-        
-        $recaptcha_json = json_decode($recaptcha_result);
-        
-        // Fix: Check if recaptcha_json is valid before accessing success property
-        if (!$recaptcha_json || !$recaptcha_json->success) {
-            $login_message = "reCAPTCHA verification failed. Please try again.";
+        // Hardcoded admin login
+       // Admin login: redirect directly, no session
+if ($email === $admin_email && $password === $admin_password) {
+    header('Location: /revenue/dist'); // admin page
+    exit;
+}
+
+
+        // Regular user login
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE email=?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+
+        if ($user && password_verify($password, $user['password_hash'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['full_name'] = $user['full_name'];
+            $_SESSION['email'] = $user['email'];
+            $_SESSION['is_admin'] = false;
+            header('Location: dashboard.php');
+            exit;
         } else {
-            $email = trim($_POST['login_email']);
-            $password = $_POST['login_password'];
-
-            // Check for hardcoded admin login
-            if ($email === 'admin@gmail.com' && $password === 'admin') {
-                $_SESSION['user_id'] = 'admin';
-                $_SESSION['full_name'] = 'Admin'; // Changed from 'System Administrator'
-                $_SESSION['email'] = 'admin@goserveph.gov';
-                $_SESSION['is_admin'] = true;
-                header('Location: http://localhost/revenue/dist/');
-                exit;
-            }
-
-            // Regular user login from database
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE email=?");
-            $stmt->execute([$email]);
-            $user = $stmt->fetch();
-
-            if ($user && password_verify($password, $user['password_hash'])) {
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['full_name'] = $user['full_name'];
-                $_SESSION['email'] = $user['email'];
-                $_SESSION['is_admin'] = false;
-                header('Location: dashboard.php');
-                exit;
-            } else {
-                $login_message = "Invalid email or password!";
-            }
+            $login_message = "Invalid email or password!";
         }
     }
 }
 
-// Handle registration
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_email'])) {
-    // Verify reCAPTCHA for registration too
-    $recaptcha_secret = "6Lcyyu0rAAAAABPZoWsEg4vPWb0aYLfhmPgYYYgY";
-    $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
-    
-    if (empty($recaptcha_response)) {
-        $register_message = "Please complete the reCAPTCHA verification!";
-    } else {
-        $recaptcha_url = 'https://www.google.com/recaptcha/api/siteverify';
-        $recaptcha_data = [
-            'secret' => $recaptcha_secret,
-            'response' => $recaptcha_response,
-            'remoteip' => $_SERVER['REMOTE_ADDR']
-        ];
-        
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $recaptcha_url);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($recaptcha_data));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/x-www-form-urlencoded'
-        ]);
-        
-        $recaptcha_result = curl_exec($ch);
-        curl_close($ch);
-        
-        $recaptcha_json = json_decode($recaptcha_result);
-        
-        // Fix: Check if recaptcha_json is valid before accessing success property
-        if (!$recaptcha_json || !$recaptcha_json->success) {
-            $register_message = "reCAPTCHA verification failed. Please try again.";
-        } else {
-            $full_name = trim($_POST['register_full_name']);
-            $email = trim($_POST['register_email']);
-            $password_hash = password_hash($_POST['register_password'], PASSWORD_BCRYPT);
-
-            // Check if email exists
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE email=?");
-            $stmt->execute([$email]);
-            if ($stmt->rowCount() > 0) {
-                $register_message = "Email already exists!";
-            } else {
-                $stmt = $pdo->prepare("INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)");
-                if ($stmt->execute([$full_name, $email, $password_hash])) {
-                    $register_message = "Registration successful! You can now login.";
-                    // Auto-switch back to login form after successful registration
-                    echo '<script>document.addEventListener("DOMContentLoaded", function() { showLoginForm(); });</script>';
-                } else {
-                    $register_message = "Registration failed!";
-                }
-            }
-        }
-    }   
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">

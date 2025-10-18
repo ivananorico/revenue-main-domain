@@ -173,28 +173,29 @@ $login_path = '../index.php';
             </div>
 
             <!-- Pay Rent -->
-            <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <div class="p-8 text-center">
-                    <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <span class="text-3xl">💰</span>
-                    </div>
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Pay Rent</h3>
-                    <p class="text-gray-600 mb-6">Pay your monthly stall rental fees and view payment history</p>
-                    
-                    <?php if ($has_application): ?>
-                        <button onclick="location.href='pay_rent.php?application_id=<?= $application_id ?>'" 
-                                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
-                            Pay Rent Now
-                        </button>
-                    <?php else: ?>
-                        <button onclick="alert('No application found. Please apply for a stall first.')" 
-                                class="w-full bg-gray-400 cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
-                            No Application Found
-                        </button>
-                        <p class="text-sm text-gray-500 mt-2">Apply for a stall first to pay rent</p>
-                    <?php endif; ?>
-                </div>
-            </div>
+<div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+    <div class="p-8 text-center">
+        <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-3xl">💰</span>
+        </div>
+        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Pay Rent</h3>
+        <p class="text-gray-600 mb-6">Pay your monthly stall rental fees and view payment history</p>
+        
+        <?php if ($has_application): ?>
+            <!-- Updated path to pay_rent.php -->
+            <button onclick="location.href='pay_rent/pay_rent.php?application_id=<?= $application_id ?>'" 
+                    class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
+                Pay Rent Now
+            </button>
+        <?php else: ?>
+            <button onclick="alert('No application found. Please apply for a stall first.')" 
+                    class="w-full bg-gray-400 cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
+                No Application Found
+            </button>
+            <p class="text-sm text-gray-500 mt-2">Apply for a stall first to pay rent</p>
+        <?php endif; ?>
+    </div>
+</div>
 
         </div>
 

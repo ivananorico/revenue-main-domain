@@ -9,22 +9,20 @@ $logout_path = $base_url . 'logout.php';
 $login_path = $base_url . 'index.php';
 $asset_path = $base_url;
 
-// Simple session check
-$full_name = 'Guest';
+// Simple session check for citizen users
+$full_name = '';
 $show_logout = false;
 
-if (isset($_SESSION['user_id']) && isset($_SESSION['full_name'])) {
+if (isset($_SESSION['user_id'])) {
     $full_name = $_SESSION['full_name'];
     $show_logout = true;
 }
 
-// Function to add parameters to URL
+// Function to add URL parameters
 function buildUrlWithParams($baseUrl) {
     if (empty($_GET)) {
         return $baseUrl;
     }
-    
-    // Preserve ALL current URL parameters
     return $baseUrl . '?' . http_build_query($_GET);
 }
 
@@ -66,7 +64,7 @@ $login_url = buildUrlWithParams($login_path);
                     <span class="user-name"><?= htmlspecialchars($full_name) ?></span>
                 </div>
                 
-                <!-- Only show logout button if user is logged in -->
+                <!-- Only show logout if citizen is logged in -->
                 <?php if ($show_logout): ?>
                 <a href="<?= $logout_url ?>" class="logout-btn" title="Logout">
                     <i class="fas fa-sign-out-alt logout-icon"></i>
@@ -98,7 +96,6 @@ $login_url = buildUrlWithParams($login_path);
             </div>
         </div>
         
-        <!-- Only show logout in mobile menu if user is logged in -->
         <?php if ($show_logout): ?>
         <a href="<?= $logout_url ?>" class="mobile-logout-btn">
             <i class="fas fa-sign-out-alt"></i> Logout
@@ -131,7 +128,6 @@ $login_url = buildUrlWithParams($login_path);
                 });
             }
 
-            // Add keyboard accessibility for mobile menu
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && menu.classList.contains('active')) {
                     menu.classList.remove('active');
