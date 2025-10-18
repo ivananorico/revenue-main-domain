@@ -1,17 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Government Services Management System - Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-</head>
-<body class="bg-custom-bg min-h-screen flex flex-col">
-   <?php
+<?php
 session_start();
 require_once '../db/user_db.php';
 
@@ -21,7 +8,7 @@ $register_message = '';
 // Handle login
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'])) {
     // Verify reCAPTCHA first
-    $recaptcha_secret = "6Lcyyu0rAAAAABPZoWsEg4vPWb0aYLfhmPgYYYgY"; // Add your secret key here
+    $recaptcha_secret = "6Lcyyu0rAAAAABPZoWsEg4vPWb0aYLfhmPgYYYgY";
     $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
     
     if (empty($recaptcha_response)) {
@@ -50,12 +37,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'])) {
         
         $recaptcha_json = json_decode($recaptcha_result);
         
-        if (!$recaptcha_json->success) {
+        // Fix: Check if recaptcha_json is valid before accessing success property
+        if (!$recaptcha_json || !$recaptcha_json->success) {
             $login_message = "reCAPTCHA verification failed. Please try again.";
         } else {
             $email = trim($_POST['login_email']);
             $password = $_POST['login_password'];
 
+            // Check for hardcoded admin login
+            if ($email === 'admin@gmail.com' && $password === 'admin') {
+                $_SESSION['user_id'] = 'admin';
+                $_SESSION['full_name'] = 'Admin'; // Changed from 'System Administrator'
+                $_SESSION['email'] = 'admin@goserveph.gov';
+                $_SESSION['is_admin'] = true;
+                header('Location: http://localhost/revenue/dist/');
+                exit;
+            }
+
+            // Regular user login from database
             $stmt = $pdo->prepare("SELECT * FROM users WHERE email=?");
             $stmt->execute([$email]);
             $user = $stmt->fetch();
@@ -64,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'])) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['full_name'] = $user['full_name'];
                 $_SESSION['email'] = $user['email'];
+                $_SESSION['is_admin'] = false;
                 header('Location: dashboard.php');
                 exit;
             } else {
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'])) {
 // Handle registration
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_email'])) {
     // Verify reCAPTCHA for registration too
-    $recaptcha_secret = "YOUR_RECAPTCHA_SECRET_KEY";
+    $recaptcha_secret = "6Lcyyu0rAAAAABPZoWsEg4vPWb0aYLfhmPgYYYgY";
     $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
     
     if (empty($recaptcha_response)) {
@@ -104,7 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_email'])) {
         
         $recaptcha_json = json_decode($recaptcha_result);
         
-        if (!$recaptcha_json->success) {
+        // Fix: Check if recaptcha_json is valid before accessing success property
+        if (!$recaptcha_json || !$recaptcha_json->success) {
             $register_message = "reCAPTCHA verification failed. Please try again.";
         } else {
             $full_name = trim($_POST['register_full_name']);
@@ -130,7 +131,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_email'])) {
     }   
 }
 ?>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Government Services Management System - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body class="bg-custom-bg min-h-screen flex flex-col">
     <!-- Header Section -->
     <header class="py-2">
         <div class="container mx-auto px-6">
@@ -358,7 +371,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_email'])) {
                 </div>
 
                 <div>
-                    <div class="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY"></div>
+                    <div class="g-recaptcha" data-sitekey="6Lcyyu0rAAAAAE_0v046KXuaNllw1Z_Wk_HsrHqG"></div>
                 </div>
 
                 <div class="space-y-2">
@@ -597,6 +610,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_email'])) {
                 document.getElementById('registerFormContainer').classList.remove('hidden');
             });
         <?php endif; ?>
+
+        // Function to show login form (used after successful registration)
+        function showLoginForm() {
+            document.getElementById('registerFormContainer').classList.add('hidden');
+        }
     </script>
 </body>
 </html>

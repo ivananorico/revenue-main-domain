@@ -30,7 +30,7 @@ if (!isset($_SESSION['success'])) {
             <?php endif; ?>
             
             <div class="success-actions">
-                <a href="../citizen_portal/market_card/apply_stall.php" class="btn-secondary">View Application Status</a>
+                <a href="../citizen_portal/market_card/view_documents/view_documents.php" class="btn-secondary">View Application Status</a>
             </div>
         </div>
     </div>

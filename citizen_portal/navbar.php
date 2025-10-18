@@ -1,61 +1,36 @@
 <?php
-// Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Calculate base path for assets
-$base_path = dirname($_SERVER['SCRIPT_NAME']);
-if ($base_path === '/revenue/citizen_portal') {
-    $asset_path = '';
-} else {
-    // Calculate how many levels deep we are
-    $levels_deep = substr_count($base_path, '/') - 2; // -2 for /revenue/citizen_portal
-    $asset_path = str_repeat('../', $levels_deep);
+// Use absolute paths that work from anywhere
+$base_url = '/revenue/citizen_portal/';
+$logout_path = $base_url . 'logout.php';
+$login_path = $base_url . 'index.php';
+$asset_path = $base_url;
+
+// Simple session check
+$full_name = 'Guest';
+$show_logout = false;
+
+if (isset($_SESSION['user_id']) && isset($_SESSION['full_name'])) {
+    $full_name = $_SESSION['full_name'];
+    $show_logout = true;
 }
 
-// Handle logout via ?logout=true
-if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
-    // Unset all session variables
-    $_SESSION = array();
-    
-    // If it's desired to kill the session, also delete the session cookie
-    if (ini_get("session.use_cookies")) {
-        $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000,
-            $params["path"], 
-            $params["domain"],
-            $params["secure"], 
-            $params["httponly"]
-        );
+// Function to add parameters to URL
+function buildUrlWithParams($baseUrl) {
+    if (empty($_GET)) {
+        return $baseUrl;
     }
     
-    // Finally, destroy the session
-    session_destroy();
-    
-    // Clear any existing output buffers
-    if (ob_get_length()) {
-        ob_end_clean();
-    }
-    
-    // Use JavaScript redirect as fallback
-    echo '<!DOCTYPE html>
-    <html>
-    <head>
-        <title>Logging out...</title>
-        <script>
-            window.location.href = "' . $asset_path . 'index.php";
-        </script>
-    </head>
-    <body>
-        <p>Logging out... <a href="' . $asset_path . 'revenue/citizen_portal/index.php">Click here if not redirected</a></p>
-    </body>
-    </html>';
-    exit();
+    // Preserve ALL current URL parameters
+    return $baseUrl . '?' . http_build_query($_GET);
 }
 
-// Get logged-in user name
-$full_name = isset($_SESSION['full_name']) ? $_SESSION['full_name'] : 'Guest';
+// Build URLs with current parameters
+$logout_url = buildUrlWithParams($logout_path);
+$login_url = buildUrlWithParams($login_path);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -90,10 +65,19 @@ $full_name = isset($_SESSION['full_name']) ? $_SESSION['full_name'] : 'Guest';
                     </div>
                     <span class="user-name"><?= htmlspecialchars($full_name) ?></span>
                 </div>
-                <a href="?logout=true" class="logout-btn" title="Logout" onclick="return confirmLogout()">
+                
+                <!-- Only show logout button if user is logged in -->
+                <?php if ($show_logout): ?>
+                <a href="<?= $logout_url ?>" class="logout-btn" title="Logout">
                     <i class="fas fa-sign-out-alt logout-icon"></i>
                     <span class="logout-text">Logout</span>
                 </a>
+                <?php else: ?>
+                <a href="<?= $login_url ?>" class="login-btn" title="Login">
+                    <i class="fas fa-sign-in-alt login-icon"></i>
+                    <span class="login-text">Login</span>
+                </a>
+                <?php endif; ?>
             </div>
 
             <!-- Mobile Menu Button -->
@@ -113,17 +97,20 @@ $full_name = isset($_SESSION['full_name']) ? $_SESSION['full_name'] : 'Guest';
                 <span class="user-name"><?= htmlspecialchars($full_name) ?></span>
             </div>
         </div>
-        <a href="?logout=true" class="mobile-logout-btn" onclick="return confirmLogout()">
+        
+        <!-- Only show logout in mobile menu if user is logged in -->
+        <?php if ($show_logout): ?>
+        <a href="<?= $logout_url ?>" class="mobile-logout-btn">
             <i class="fas fa-sign-out-alt"></i> Logout
         </a>
+        <?php else: ?>
+        <a href="<?= $login_url ?>" class="mobile-login-btn">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        <?php endif; ?>
     </div>
 
     <script>
-        // Logout confirmation function
-        function confirmLogout() {
-            return confirm('Are you sure you want to logout?');
-        }
-
         // Mobile menu functionality
         document.addEventListener('DOMContentLoaded', () => {
             const toggle = document.querySelector('.mobile-menu-toggle');

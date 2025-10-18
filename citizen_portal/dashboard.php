@@ -1,17 +1,13 @@
 <?php
+// dashboard.php - Add session validation
 session_start();
-require_once '../db/user_db.php';
 
-if (!isset($_SESSION['user_id'])) {
+// Check if user is logged in, if not redirect to login page
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['full_name'])) {
     header('Location: index.php');
     exit;
 }
-
-$full_name = $_SESSION['full_name'];
-$user_id = $_SESSION['user_id'];
-$email = $_SESSION['email'];
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,6 +15,7 @@ $email = $_SESSION['email'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Municipal Services</title>
     <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="navbar.css">
 </head>
 <body>
 
@@ -34,7 +31,7 @@ $email = $_SESSION['email'];
         
         <div class="cards-grid">
             <!-- Market Stall Rental Card -->
-            <div class="card" onclick="location.href='market_card/apply_stall.php'">
+            <div class="card" onclick="location.href='market_card/market-dashboard.php'">
                 <div class="card-icon">🏪</div>
                 <h3>Market Stall Rental</h3>
                 <p>Apply for market stall rentals and manage your existing stalls</p>
