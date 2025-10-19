@@ -1,12 +1,15 @@
 <?php
-session_start();
-require_once '../../db/RPT/rpt_db.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
+// Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: index.php');
+    header('Location: ../index.php');
     exit;
 }
 
+require_once '../../../db/RPT/rpt_db.php';
 $user_id = $_SESSION['user_id'];
 $full_name = $_SESSION['full_name'] ?? 'Guest';
 
@@ -30,9 +33,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Application Type and Property Location
     $application_type = htmlspecialchars($_POST['application_type']);
     $property_type = htmlspecialchars($_POST['property_type']);
-    $property_address = htmlspecialchars($_POST['property_address']);
-    $property_barangay = htmlspecialchars($_POST['property_barangay']);
-    $property_municipality = htmlspecialchars($_POST['property_municipality']);
+    
+    // Auto-fill property address from citizen address if not provided
+    $property_address = htmlspecialchars($_POST['property_address'] ?? '');
+    if (empty($property_address)) {
+        $property_address = $house_number . ' ' . $street;
+    }
+    
+    $property_barangay = htmlspecialchars($_POST['property_barangay'] ?? $barangay);
+    $property_municipality = htmlspecialchars($_POST['property_municipality'] ?? $city);
     
     // For Transfer Applications
     $previous_tdn = htmlspecialchars($_POST['previous_tdn'] ?? '');
@@ -165,9 +174,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmt = $pdo->prepare("INSERT INTO rpt_applications 
                 (user_id, application_type, first_name, middle_name, last_name, gender, date_of_birth, civil_status,
-                 house_number, street, barangay, city, zip_code, contact_number, email,
-                 property_type, property_address, property_barangay, property_municipality,
-                 previous_tdn, previous_owner, status, application_date) 
+                house_number, street, barangay, city, zip_code, contact_number, email,
+                property_type, property_address, property_barangay, property_municipality,
+                previous_tdn, previous_owner, status, application_date) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())");
             
             $stmt->execute([
@@ -187,7 +196,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$application_id, $file_info['type'], $file_info['filename'], $file_info['path']]);
             }
             
-            $success_message = "Property registration submitted successfully! Our assessor will visit your property for assessment.";
+            // REDIRECT TO SUCCESS PAGE
+            header("Location: register_success.php?application_id=" . $application_id);
+            exit;
             
         } catch (PDOException $e) {
             $error_message = "Database error: " . $e->getMessage();
@@ -196,6 +207,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $error_message = "Please fix the following errors: " . implode(", ", $upload_errors);
     }
+}
+
+// Get user's recent applications for status display
+$user_applications = [];
+try {
+    $stmt = $pdo->prepare("SELECT id, application_type, status, application_date, property_address 
+                          FROM rpt_applications 
+                          WHERE user_id = ? 
+                          ORDER BY application_date DESC 
+                          LIMIT 5");
+    $stmt->execute([$user_id]);
+    $user_applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Error fetching user applications: " . $e->getMessage());
 }
 ?>
 
@@ -210,7 +235,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <?php include '../../citizen_portal/navbar.php'; ?>
+    <?php include '../../../citizen_portal/navbar.php'; ?>
     
     <div class="rpt-register-container">
         <div class="rpt-register-header">
@@ -222,16 +247,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
-        <?php if (isset($success_message)): ?>
-            <div class="success-message">
-                <i class="fas fa-check-circle"></i>
-                <?php echo $success_message; ?>
-                <?php if (isset($uploaded_files) && count($uploaded_files) > 0): ?>
-                    <br><small>Files uploaded: <?php echo count($uploaded_files); ?></small>
-                <?php endif; ?>
-            </div>
-        <?php endif; ?>
-
         <?php if (isset($error_message)): ?>
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
@@ -239,7 +254,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
 
+        <!-- Application Status Section -->
+        <?php if (!empty($user_applications)): ?>
+            <div class="status-section">
+                <h3><i class="fas fa-history"></i> Your Recent Applications</h3>
+                <div class="applications-list">
+                    <?php foreach ($user_applications as $app): ?>
+                        <div class="application-item">
+                            <div class="app-info">
+                                <span class="app-id">RPT-<?php echo str_pad($app['id'], 6, '0', STR_PAD_LEFT); ?></span>
+                                <span class="app-type"><?php echo ucfirst($app['application_type']); ?> Application</span>
+                                <span class="app-address"><?php echo $app['property_address']; ?></span>
+                            </div>
+                            <div class="app-status status-<?php echo strtolower($app['status']); ?>">
+                                <?php echo ucfirst($app['status']); ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- Registration Form -->
         <form method="POST" class="rpt-register-form" id="rptRegisterForm" enctype="multipart/form-data">
+            
             <!-- Application Type -->
             <div class="form-section">
                 <h2><i class="fas fa-file-alt"></i> Application Type</h2>
@@ -352,8 +390,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     <div class="form-group full-width">
                         <label for="property_address">Property Address *</label>
-                        <input type="text" id="property_address" name="property_address" required 
-                               placeholder="Street, Purok, Subdivision, or Sitio" value="<?php echo $_POST['property_address'] ?? ''; ?>">
+                        <div class="address-suggestion">
+                            <input type="text" id="property_address" name="property_address" required 
+                                placeholder="Street, Purok, Subdivision, or Sitio" value="<?php echo $_POST['property_address'] ?? ''; ?>">
+                            <button type="button" class="btn-suggest" onclick="useCitizenAddress()">
+                                <i class="fas fa-copy"></i> Use My Address
+                            </button>
+                        </div>
+                        <small class="help-text">Click "Use My Address" to auto-fill from your information above</small>
                     </div>
                     
                     <div class="form-group">
@@ -368,7 +412,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
-            <!-- Transfer Application Fields (Hidden by default) -->
+            <!-- Transfer Application Fields -->
             <div class="form-section transfer-fields" id="transferFields" style="display: none;">
                 <h2><i class="fas fa-exchange-alt"></i> Transfer Information</h2>
                 <div class="form-grid">
@@ -578,7 +622,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Form Actions -->
             <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="window.location.href='rpt_dashboard.php'">
+                <button type="button" class="btn-secondary" onclick="window.location.href='../rpt_dashboard.php'">
                     <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </button>
                 <button type="submit" class="btn-primary">
@@ -589,6 +633,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script>
+        // Auto-fill property address from citizen address
+        function useCitizenAddress() {
+            const houseNumber = document.getElementById('house_number').value;
+            const street = document.getElementById('street').value;
+            const barangay = document.getElementById('barangay').value;
+            const city = document.getElementById('city').value;
+            
+            // Build address
+            let address = '';
+            if (houseNumber) address += houseNumber + ' ';
+            if (street) address += street;
+            
+            // Set property address
+            document.getElementById('property_address').value = address.trim();
+            document.getElementById('property_barangay').value = barangay;
+            document.getElementById('property_municipality').value = city;
+        }
+
         // File upload preview functionality
         document.querySelectorAll('input[type="file"]').forEach(input => {
             input.addEventListener('change', function(e) {

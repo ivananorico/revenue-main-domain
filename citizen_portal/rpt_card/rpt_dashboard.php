@@ -37,7 +37,7 @@ $full_name = $_SESSION['full_name'] ?? 'Guest';
                 <div class="card-content">
                     <h3>Register Property</h3>
                     <p>Register your property for tax assessment and obtain your Tax Declaration</p>
-                    <a href="register_rpt.php" class="card-button">
+                    <a href="../rpt_card/register_rpt/register_rpt.php" class="card-button">
                         Register Now
                     </a>
                 </div>
@@ -51,7 +51,7 @@ $full_name = $_SESSION['full_name'] ?? 'Guest';
                 <div class="card-content">
                     <h3>Applications</h3>
                     <p>View and manage your property tax applications and status</p>
-                    <a href="rpt_application.php" class="card-button">
+                    <a href="../rpt_card/rpt_application/rpt_application.php" class="card-button">
                         View Applications
                     </a>
                 </div>
