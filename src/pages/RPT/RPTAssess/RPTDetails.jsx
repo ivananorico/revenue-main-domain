@@ -19,20 +19,30 @@ export default function RPTDetails() {
   });
   const [propertyData, setPropertyData] = useState({
     lot_area: '',
-    land_use: 'Residential',
+    land_use: '',
     location: '',
     barangay: '',
     municipality: '',
     tdn_no: ''
   });
+  const [buildingData, setBuildingData] = useState({
+    building_area: '',
+    building_type: '',
+    construction_type: '',
+    year_built: new Date().getFullYear(),
+    number_of_storeys: 1,
+    tdn_no: ''
+  });
   const [landUseOptions, setLandUseOptions] = useState([]);
+  const [buildingRateOptions, setBuildingRateOptions] = useState([]);
+  const [constructionTypes, setConstructionTypes] = useState([]);
   const { id } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (id) {
       fetchApplicationDetails();
-      fetchLandUseOptions();
+      fetchConfigurationOptions();
     } else {
       setError('No application ID provided');
       setLoading(false);
@@ -54,13 +64,24 @@ export default function RPTDetails() {
         setDocuments(data.data.documents || []);
         
         // Pre-fill property data from application
+        const currentYear = new Date().getFullYear();
+        const appId = data.data.application.id.toString().padStart(3, '0');
+        
         setPropertyData(prev => ({
           ...prev,
           location: data.data.application.property_address,
           barangay: data.data.application.property_barangay,
           municipality: data.data.application.property_municipality,
-          tdn_no: `TDN-${new Date().getFullYear()}-${data.data.application.id.toString().padStart(3, '0')}`
+          tdn_no: `TDN-LAND-${currentYear}-${appId}`
         }));
+
+        // Pre-fill building TDN if property type is land_with_house
+        if (data.data.application.property_type === 'land_with_house') {
+          setBuildingData(prev => ({
+            ...prev,
+            tdn_no: `TDN-BLDG-${currentYear}-${appId}`
+          }));
+        }
       } else {
         setError(data.message || 'Failed to fetch application details');
       }
@@ -72,124 +93,295 @@ export default function RPTDetails() {
     }
   };
 
-  const fetchLandUseOptions = async () => {
+  const fetchConfigurationOptions = async () => {
     try {
-      const response = await fetch('http://localhost/revenue/backend/RPT/RPTAssess/get-land-use-options.php');
-      const data = await response.json();
+      // Fetch land use options
+      const landResponse = await fetch('http://localhost/revenue/backend/RPT/RPTAssess/get-configurations.php?type=land_use');
+      const landData = await landResponse.json();
       
-      if (data.status === 'success') {
-        setLandUseOptions(data.data);
-      } else {
-        // Fallback options
-        setLandUseOptions([
-          { land_use: 'Residential', market_value_per_sqm: 1500.00, land_assessed_lvl: 0.20 },
-          { land_use: 'Commercial', market_value_per_sqm: 3000.00, land_assessed_lvl: 0.35 },
-          { land_use: 'Industrial', market_value_per_sqm: 2500.00, land_assessed_lvl: 0.40 },
-          { land_use: 'Agricultural', market_value_per_sqm: 800.00, land_assessed_lvl: 0.10 }
-        ]);
+      if (landData.status === 'success') {
+        setLandUseOptions(landData.data);
+        // Set default land use
+        if (landData.data.length > 0) {
+          setPropertyData(prev => ({ ...prev, land_use: landData.data[0].land_use }));
+        }
+      }
+
+      // Fetch building rate options
+      const buildingResponse = await fetch('http://localhost/revenue/backend/RPT/RPTAssess/get-configurations.php?type=building_rates');
+      const buildingData = await buildingResponse.json();
+      
+      if (buildingData.status === 'success') {
+        setBuildingRateOptions(buildingData.data);
+        // Set default building type and construction type
+        if (buildingData.data.length > 0) {
+          const firstBuildingType = buildingData.data[0].building_type;
+          const constructionTypesForBuilding = buildingData.data
+            .filter(item => item.building_type === firstBuildingType)
+            .map(item => item.construction_type);
+          
+          setBuildingData(prev => ({ 
+            ...prev, 
+            building_type: firstBuildingType,
+            construction_type: constructionTypesForBuilding[0] || ''
+          }));
+          
+          setConstructionTypes(constructionTypesForBuilding);
+        }
       }
     } catch (error) {
-      console.error('Error fetching land use options:', error);
-      setLandUseOptions([
-        { land_use: 'Residential', market_value_per_sqm: 1500.00, land_assessed_lvl: 0.20 },
-        { land_use: 'Commercial', market_value_per_sqm: 3000.00, land_assessed_lvl: 0.35 },
-        { land_use: 'Industrial', market_value_per_sqm: 2500.00, land_assessed_lvl: 0.40 },
-        { land_use: 'Agricultural', market_value_per_sqm: 800.00, land_assessed_lvl: 0.10 }
-      ]);
+      console.error('Error fetching configuration options:', error);
     }
+  };
+
+  const handleBuildingTypeChange = (buildingType) => {
+    // Filter construction types for the selected building type
+    const filteredConstructionTypes = buildingRateOptions
+      .filter(option => option.building_type === buildingType)
+      .map(option => option.construction_type);
+    
+    setConstructionTypes(filteredConstructionTypes);
+    
+    // Auto-select the first construction type or clear if none
+    setBuildingData(prev => ({
+      ...prev,
+      building_type: buildingType,
+      construction_type: filteredConstructionTypes.length > 0 ? filteredConstructionTypes[0] : ''
+    }));
+  };
+
+  const getRateInfoForLandUse = (landUse) => {
+    const option = landUseOptions.find(opt => opt.land_use === landUse);
+    return option ? `(₱${option.market_value_per_sqm}/sqm - ${(option.land_assessed_lvl * 100).toFixed(0)}% assessment)` : '';
+  };
+
+  const getRateInfoForBuilding = (buildingType, constructionType) => {
+    const option = buildingRateOptions.find(opt => 
+      opt.building_type === buildingType && opt.construction_type === constructionType
+    );
+    return option ? `(₱${option.market_value_per_sqm}/sqm - ${(option.building_assessed_lvl * 100).toFixed(0)}% assessment)` : '';
   };
 
   const handleBack = () => {
     navigate('/RPT/RPTAssess');
   };
 
- const handlePropertySubmit = async () => {
-  try {
-    console.log('Submitting property data:', propertyData);
-    console.log('Application ID:', id);
+  const handleStatusUpdate = async (newStatus) => {
+    try {
+      const response = await fetch('http://localhost/revenue/backend/RPT/RPTAssess/update-status.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          application_id: id,
+          status: newStatus
+        })
+      });
 
-    // Validate required fields
-    if (!propertyData.lot_area || !propertyData.land_use) {
-      alert('Please fill in all required fields.');
-      return;
-    }
-
-    // Create the payload structure that matches PHP backend expectations
-    const payload = {
-      application_id: parseInt(id),
-      property_data: {
-        lot_area: propertyData.lot_area,
-        land_use: propertyData.land_use,
-        location: propertyData.location,
-        barangay: propertyData.barangay,
-        municipality: propertyData.municipality,
-        tdn_no: propertyData.tdn_no
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        setApplication(prev => ({ ...prev, status: newStatus }));
+        alert('Status updated successfully!');
+      } else {
+        alert('Failed to update status: ' + data.message);
       }
-    };
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert('Error updating status');
+    }
+  };
 
-    console.log('Payload being sent:', payload);
+  const handleAssessmentSubmit = async () => {
+    try {
+      const response = await fetch('http://localhost/revenue/backend/RPT/RPTAssess/assessment_schedule.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          application_id: id,
+          ...assessmentData
+        })
+      });
 
-    const response = await fetch(
-      'http://localhost/revenue/backend/RPT/RPTAssess/save_land_assessment-complete.php',
-      {
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        setApplication(prev => ({ ...prev, status: 'for_assessment' }));
+        setShowAssessmentModal(false);
+        setAssessmentData({ visit_date: '', assessor_name: '', notes: '' });
+        alert('Assessment scheduled successfully!');
+      } else {
+        alert('Failed to schedule assessment: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error scheduling assessment:', error);
+      alert('Error scheduling assessment');
+    }
+  };
+
+  const handlePropertySubmit = async () => {
+    try {
+      console.log('=== STARTING PROPERTY ASSESSMENT ===');
+      
+      // Validate required fields
+      if (!propertyData.lot_area || !propertyData.land_use) {
+        alert('Please fill in all required land fields.');
+        return;
+      }
+
+      if (application.property_type === 'land_with_house') {
+        if (!buildingData.building_area || !buildingData.building_type || !buildingData.construction_type || !buildingData.tdn_no) {
+          alert('Please fill in all required building fields.');
+          return;
+        }
+      }
+
+      // Create payload - make sure all values are properly set
+      const payload = {
+        application_id: parseInt(id),
+        property_type: application.property_type,
+        property_data: {
+          lot_area: parseFloat(propertyData.lot_area) || 0,
+          land_use: propertyData.land_use || '',
+          location: propertyData.location || '',
+          barangay: propertyData.barangay || '',
+          municipality: propertyData.municipality || '',
+          tdn_no: propertyData.tdn_no || ''
+        }
+      };
+
+      if (application.property_type === 'land_with_house') {
+        payload.building_data = {
+          building_area: parseFloat(buildingData.building_area) || 0,
+          building_type: buildingData.building_type || '',
+          construction_type: buildingData.construction_type || '',
+          year_built: parseInt(buildingData.year_built) || new Date().getFullYear(),
+          number_of_storeys: parseInt(buildingData.number_of_storeys) || 1,
+          tdn_no: buildingData.tdn_no || ''
+        };
+      }
+
+      console.log('Final payload object:', payload);
+      console.log('JSON stringified:', JSON.stringify(payload));
+
+      // Test the connection
+      const assessmentUrl = 'http://localhost/revenue/backend/RPT/RPTAssess/save_land_assessment-complete.php';
+      
+      console.log('Making POST request to:', assessmentUrl);
+      
+      const response = await fetch(assessmentUrl, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify(payload)
+      });
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response text:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
-    );
 
-    console.log('Response status:', response.status);
+      const responseText = await response.text();
+      console.log('Raw response text:', responseText);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const responseText = await response.text();
-    console.log('Raw response:', responseText);
-
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (err) {
-      console.error('JSON parse error:', err);
-      throw new Error('Invalid JSON response from server: ' + responseText);
-    }
-
-    if (data.status === 'success') {
-      // Use the calculated values from the backend response
-      const calculations = data.data.calculations;
-      alert(
-        `✅ Assessment completed successfully!\n\n` +
-        `Market Value per sqm: ₱${calculations.market_value_per_sqm.toFixed(2)}\n` +
-        `Assessed Value: ₱${calculations.land_assessed_value.toFixed(2)}\n` +
-        `Annual Tax: ₱${calculations.land_total_tax.toFixed(2)}\n` +
-        `Quarterly Tax: ₱${calculations.quarterly_tax.toFixed(2)}`
-      );
-
-      setApplication(prev => ({ ...prev, status: 'assessed' }));
-      setShowPropertyModal(false);
-
-      // Auto approve if property type is land only
-      if (application.property_type === 'land_only') {
-        setTimeout(() => handleStatusUpdate('approved'), 1000);
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (err) {
+        console.error('JSON parse error:', err);
+        throw new Error(`Server returned invalid JSON: ${responseText}`);
       }
-    } else {
-      alert('❌ Failed to save property assessment: ' + data.message);
+
+      console.log('Parsed response data:', data);
+
+      if (data.status === 'success') {
+        const calculations = data.data.calculations;
+        let successMessage = `✅ Assessment completed successfully!\n\n`;
+        
+        // Land calculations
+        successMessage += `LAND ASSESSMENT:\n`;
+        successMessage += `TDN: ${propertyData.tdn_no}\n`;
+        successMessage += `Market Value per sqm: ₱${calculations.land.market_value_per_sqm.toFixed(2)}\n`;
+        successMessage += `Assessed Value: ₱${calculations.land.land_assessed_value.toFixed(2)}\n`;
+        successMessage += `Annual Tax: ₱${calculations.land.land_total_tax.toFixed(2)}\n`;
+        successMessage += `Quarterly Tax: ₱${calculations.land.quarterly_tax.toFixed(2)}\n\n`;
+
+        // Building calculations if applicable
+        if (application.property_type === 'land_with_house' && calculations.building) {
+          successMessage += `BUILDING ASSESSMENT:\n`;
+          successMessage += `TDN: ${buildingData.tdn_no}\n`;
+          successMessage += `Market Value per sqm: ₱${calculations.building.building_value_per_sqm.toFixed(2)}\n`;
+          successMessage += `Assessed Value: ₱${calculations.building.building_assessed_value.toFixed(2)}\n`;
+          successMessage += `Annual Tax: ₱${calculations.building.building_total_tax.toFixed(2)}\n`;
+          successMessage += `Quarterly Tax: ₱${calculations.building.quarterly_tax.toFixed(2)}\n\n`;
+        }
+
+        // Total calculations
+        successMessage += `TOTAL:\n`;
+        successMessage += `Total Assessed Value: ₱${calculations.total.total_assessed_value.toFixed(2)}\n`;
+        successMessage += `Total Annual Tax: ₱${calculations.total.total_annual_tax.toFixed(2)}\n`;
+        successMessage += `Total Quarterly Tax: ₱${calculations.total.total_quarterly_tax.toFixed(2)}`;
+
+        alert(successMessage);
+
+        setApplication(prev => ({ ...prev, status: 'assessed' }));
+        setShowPropertyModal(false);
+
+        // Auto approve after assessment
+        setTimeout(() => {
+          handleStatusUpdate('approved');
+        }, 1000);
+      } else {
+        alert('❌ Failed to save property assessment: ' + data.message);
+      }
+
+    } catch (error) {
+      console.error('=== ASSESSMENT FAILED ===', error);
+      
+      let errorMessage = '❌ Error:\n\n';
+      
+      if (error.message.includes('Failed to fetch')) {
+        errorMessage += 'Network Connection Failed!\n\n';
+        errorMessage += 'Cannot connect to the server. Please check:\n';
+        errorMessage += '• XAMPP Apache is running\n';
+        errorMessage += '• The PHP file exists\n';
+        errorMessage += '• No firewall blocking\n';
+      } else if (error.message.includes('JSON')) {
+        errorMessage += 'JSON Issue:\n';
+        errorMessage += error.message + '\n\n';
+        errorMessage += 'Check browser console for details.';
+      } else {
+        errorMessage += error.message;
+      }
+      
+      alert(errorMessage);
     }
-  } catch (error) {
-    console.error('Error saving property assessment:', error);
-    alert('Error saving property assessment: ' + error.message);
-  }
-};
+  };
 
   const handlePropertyDataChange = (field, value) => {
     setPropertyData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleBuildingDataChange = (field, value) => {
+    if (field === 'building_type') {
+      handleBuildingTypeChange(value);
+    } else {
+      setBuildingData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const handleViewDocument = async (doc) => {
@@ -556,15 +748,15 @@ export default function RPTDetails() {
         <div className="modal-overlay" onClick={(e) => handleOverlayClick(e, 'property')}>
           <div className="modal-content modal-wide" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Land Property Assessment</h3>
+              <h3>Property Assessment - {application.property_type.replace('_', ' ').toUpperCase()}</h3>
               <button onClick={() => setShowPropertyModal(false)} className="modal-close">
                 ×
               </button>
             </div>
             <div className="modal-body">
-              {/* Basic Property Information */}
+              {/* Land Information */}
               <div className="form-section">
-                <h4>Property Details</h4>
+                <h4>Land Details</h4>
                 <div className="form-row">
                   <div className="form-group">
                     <label>Location *</label>
@@ -599,12 +791,12 @@ export default function RPTDetails() {
                     />
                   </div>
                   <div className="form-group">
-                    <label>TDN Number *</label>
+                    <label>Land TDN Number *</label>
                     <input
                       type="text"
                       value={propertyData.tdn_no}
                       onChange={(e) => handlePropertyDataChange('tdn_no', e.target.value)}
-                      placeholder="Tax Declaration Number"
+                      placeholder="Land Tax Declaration Number"
                       className="form-input"
                     />
                   </div>
@@ -629,10 +821,9 @@ export default function RPTDetails() {
                       onChange={(e) => handlePropertyDataChange('land_use', e.target.value)}
                       className="form-input"
                     >
-                      <option value="">Select Land Use</option>
                       {landUseOptions.map(option => (
                         <option key={option.land_use} value={option.land_use}>
-                          {option.land_use}
+                          {option.land_use} {getRateInfoForLandUse(option.land_use)}
                         </option>
                       ))}
                     </select>
@@ -640,8 +831,95 @@ export default function RPTDetails() {
                 </div>
               </div>
 
+              {/* Building Information - Only show if property type is land_with_house */}
+              {application.property_type === 'land_with_house' && (
+                <div className="form-section">
+                  <h4>Building Details</h4>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Building Area (sqm) *</label>
+                      <input
+                        type="number"
+                        value={buildingData.building_area}
+                        onChange={(e) => handleBuildingDataChange('building_area', e.target.value)}
+                        placeholder="Enter building area in square meters"
+                        className="form-input"
+                        step="0.01"
+                        min="0"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Building Type *</label>
+                      <select
+                        value={buildingData.building_type}
+                        onChange={(e) => handleBuildingDataChange('building_type', e.target.value)}
+                        className="form-input"
+                      >
+                        {[...new Set(buildingRateOptions.map(option => option.building_type))].map(type => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Construction Type *</label>
+                      <select
+                        value={buildingData.construction_type}
+                        onChange={(e) => handleBuildingDataChange('construction_type', e.target.value)}
+                        className="form-input"
+                        disabled={!buildingData.building_type}
+                      >
+                        {constructionTypes.map(constructionType => (
+                          <option key={constructionType} value={constructionType}>
+                            {constructionType} {getRateInfoForBuilding(buildingData.building_type, constructionType)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Building TDN Number *</label>
+                      <input
+                        type="text"
+                        value={buildingData.tdn_no}
+                        onChange={(e) => handleBuildingDataChange('tdn_no', e.target.value)}
+                        placeholder="Building Tax Declaration Number"
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Year Built</label>
+                      <input
+                        type="number"
+                        value={buildingData.year_built}
+                        onChange={(e) => handleBuildingDataChange('year_built', e.target.value)}
+                        className="form-input"
+                        min="1900"
+                        max={new Date().getFullYear()}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Number of Storeys</label>
+                      <input
+                        type="number"
+                        value={buildingData.number_of_storeys}
+                        onChange={(e) => handleBuildingDataChange('number_of_storeys', e.target.value)}
+                        className="form-input"
+                        min="1"
+                        max="50"
+                        placeholder="Enter number of storeys"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="calculation-note">
-                <p><strong>Note:</strong> The system will automatically calculate the assessed value and taxes based on the configured rates when you submit.</p>
+                <p><strong>Note:</strong> The system will automatically calculate the assessed values and taxes based on the configured rates in the database.</p>
               </div>
             </div>
             <div className="modal-footer">
@@ -651,8 +929,13 @@ export default function RPTDetails() {
               <button 
                 onClick={handlePropertySubmit}
                 className="btn-primary"
-                disabled={!propertyData.lot_area || !propertyData.land_use || !propertyData.location || 
-                         !propertyData.barangay || !propertyData.municipality || !propertyData.tdn_no}
+                disabled={
+                  !propertyData.lot_area || !propertyData.land_use || !propertyData.location || 
+                  !propertyData.barangay || !propertyData.municipality || !propertyData.tdn_no ||
+                  (application.property_type === 'land_with_house' && (
+                    !buildingData.building_area || !buildingData.building_type || !buildingData.construction_type || !buildingData.tdn_no
+                  ))
+                }
               >
                 Complete Assessment & Approve
               </button>
