@@ -653,3 +653,157 @@
 .calculation-note strong {
   color: #1e4a8b;
 }
+
+/* Assessment Information Styles */
+.assessment-card {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.assessment-subtitle {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 8px;
+}
+
+.assessment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.assessment-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.assessment-label {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+}
+
+.assessment-value {
+  color: #2c3e50;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.assessment-value.highlight {
+  color: #e74c3c;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Tax Summary */
+.total-summary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.total-summary .assessment-subtitle {
+  color: white;
+  border-bottom-color: white;
+}
+
+.tax-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.tax-summary-item {
+  text-align: center;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.tax-summary-item label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  opacity: 0.9;
+}
+
+.tax-summary-item .tax-amount {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.tax-summary-item .tax-amount.highlight {
+  color: #f39c12;
+}
+
+/* Quarterly Payments Table */
+.quarterly-table {
+  overflow-x: auto;
+}
+
+.quarterly-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.quarterly-table th,
+.quarterly-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.quarterly-table th {
+  background: #34495e;
+  color: white;
+  font-weight: 600;
+}
+
+.quarterly-table tr:hover {
+  background: #f8f9fa;
+}
+
+/* Payment Status Badges */
+.payment-status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.payment-status.unpaid {
+  background: #ffeaa7;
+  color: #e17055;
+}
+
+.payment-status.paid {
+  background: #55efc4;
+  color: #00b894;
+}
+
+.payment-status.overdue {
+  background: #fab1a0;
+  color: #d63031;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .assessment-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tax-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .quarterly-table {
+    font-size: 0.9rem;
+  }
+}

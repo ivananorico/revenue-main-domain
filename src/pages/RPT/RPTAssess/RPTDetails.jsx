@@ -36,6 +36,10 @@ export default function RPTDetails() {
   const [landUseOptions, setLandUseOptions] = useState([]);
   const [buildingRateOptions, setBuildingRateOptions] = useState([]);
   const [constructionTypes, setConstructionTypes] = useState([]);
+  const [landAssessment, setLandAssessment] = useState(null);
+  const [buildingAssessment, setBuildingAssessment] = useState(null);
+  const [quarterlyPayments, setQuarterlyPayments] = useState([]);
+  const [totalTax, setTotalTax] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -62,6 +66,10 @@ export default function RPTDetails() {
       if (data.status === 'success') {
         setApplication(data.data.application);
         setDocuments(data.data.documents || []);
+        setLandAssessment(data.data.land_assessment);
+        setBuildingAssessment(data.data.building_assessment);
+        setQuarterlyPayments(data.data.quarterly_payments || []);
+        setTotalTax(data.data.total_tax);
         
         // Pre-fill property data from application
         const currentYear = new Date().getFullYear();
@@ -162,34 +170,101 @@ export default function RPTDetails() {
     return option ? `(₱${option.market_value_per_sqm}/sqm - ${(option.building_assessed_lvl * 100).toFixed(0)}% assessment)` : '';
   };
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      minimumFractionDigits: 2
+    }).format(amount || 0);
+  };
+
+  const getPaymentStatusBadge = (status) => {
+    const statusClasses = {
+      unpaid: 'payment-status unpaid',
+      paid: 'payment-status paid',
+      overdue: 'payment-status overdue'
+    };
+
+    return (
+      <span className={statusClasses[status] || 'payment-status unpaid'}>
+        {status.toUpperCase()}
+      </span>
+    );
+  };
+
   const handleBack = () => {
     navigate('/RPT/RPTAssess');
   };
 
   const handleStatusUpdate = async (newStatus) => {
     try {
+      console.log('=== STARTING STATUS UPDATE ===');
+      console.log('Updating status to:', newStatus, 'for application:', id);
+      
+      // Create the request data
+      const requestData = {
+        application_id: parseInt(id),
+        status: newStatus
+      };
+      
+      console.log('Request data:', requestData);
+      console.log('JSON stringified:', JSON.stringify(requestData));
+
       const response = await fetch('http://localhost/revenue/backend/RPT/RPTAssess/update-status.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          application_id: id,
-          status: newStatus
-        })
+        body: JSON.stringify(requestData)
       });
 
-      const data = await response.json();
+      console.log('Response status:', response.status);
+      
+      // Get the raw response text first
+      const responseText = await response.text();
+      console.log('Raw response text:', responseText);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}, response: ${responseText}`);
+      }
+
+      // Try to parse JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log('Parsed response data:', data);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Response that failed to parse:', responseText);
+        throw new Error('Server returned invalid JSON: ' + responseText);
+      }
       
       if (data.status === 'success') {
-        setApplication(prev => ({ ...prev, status: newStatus }));
-        alert('Status updated successfully!');
+        // Update the application state
+        setApplication(prev => ({ 
+          ...prev, 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        }));
+        
+        // Show specific success message based on status
+        if (newStatus === 'approved') {
+          alert('✅ Application approved successfully!');
+          // Redirect after approval
+          setTimeout(() => {
+            navigate('/RPT/RPTAssess');
+          }, 1500);
+        } else if (newStatus === 'rejected') {
+          alert('❌ Application rejected.');
+        } else {
+          alert('Status updated successfully!');
+        }
       } else {
-        alert('Failed to update status: ' + data.message);
+        throw new Error(data.message || 'Failed to update status');
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Error updating status');
+      alert('❌ Error updating status: ' + error.message);
     }
   };
 
@@ -239,7 +314,7 @@ export default function RPTDetails() {
         }
       }
 
-      // Create payload - make sure all values are properly set
+      // Create payload
       const payload = {
         application_id: parseInt(id),
         property_type: application.property_type,
@@ -265,9 +340,7 @@ export default function RPTDetails() {
       }
 
       console.log('Final payload object:', payload);
-      console.log('JSON stringified:', JSON.stringify(payload));
 
-      // Test the connection
       const assessmentUrl = 'http://localhost/revenue/backend/RPT/RPTAssess/save_land_assessment-complete.php';
       
       console.log('Making POST request to:', assessmentUrl);
@@ -335,10 +408,8 @@ export default function RPTDetails() {
         setApplication(prev => ({ ...prev, status: 'assessed' }));
         setShowPropertyModal(false);
 
-        // Auto approve after assessment
-        setTimeout(() => {
-          handleStatusUpdate('approved');
-        }, 1000);
+        // Refresh the data to show new assessment
+        fetchApplicationDetails();
       } else {
         alert('❌ Failed to save property assessment: ' + data.message);
       }
@@ -622,6 +693,139 @@ export default function RPTDetails() {
             )}
           </div>
         </div>
+
+        {/* Assessment Information */}
+        {landAssessment && (
+          <div className="details-section">
+            <h2 className="section-title">Assessment Information</h2>
+            
+            {/* Land Assessment */}
+            <div className="assessment-card">
+              <h3 className="assessment-subtitle">Land Assessment</h3>
+              <div className="assessment-grid">
+                <div className="assessment-group">
+                  <label className="assessment-label">TDN Number</label>
+                  <p className="assessment-value">{landAssessment.tdn_no || 'N/A'}</p>
+                </div>
+                <div className="assessment-group">
+                  <label className="assessment-label">Lot Area</label>
+                  <p className="assessment-value">{landAssessment.lot_area} sqm</p>
+                </div>
+                <div className="assessment-group">
+                  <label className="assessment-label">Land Use</label>
+                  <p className="assessment-value">{landAssessment.land_use}</p>
+                </div>
+                <div className="assessment-group">
+                  <label className="assessment-label">Market Value per sqm</label>
+                  <p className="assessment-value">{formatCurrency(landAssessment.land_value_per_sqm)}</p>
+                </div>
+                <div className="assessment-group">
+                  <label className="assessment-label">Assessed Level</label>
+                  <p className="assessment-value">{(landAssessment.land_assessed_lvl * 100).toFixed(0)}%</p>
+                </div>
+                <div className="assessment-group">
+                  <label className="assessment-label">Assessed Value</label>
+                  <p className="assessment-value highlight">{formatCurrency(landAssessment.land_assessed_value)}</p>
+                </div>
+                <div className="assessment-group">
+                  <label className="assessment-label">Annual Tax</label>
+                  <p className="assessment-value highlight">{formatCurrency(landAssessment.land_total_tax)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Building Assessment */}
+            {buildingAssessment && (
+              <div className="assessment-card">
+                <h3 className="assessment-subtitle">Building Assessment</h3>
+                <div className="assessment-grid">
+                  <div className="assessment-group">
+                    <label className="assessment-label">Building Type</label>
+                    <p className="assessment-value">{buildingAssessment.building_type}</p>
+                  </div>
+                  <div className="assessment-group">
+                    <label className="assessment-label">Construction Type</label>
+                    <p className="assessment-value">{buildingAssessment.construction_type}</p>
+                  </div>
+                  <div className="assessment-group">
+                    <label className="assessment-label">Building Area</label>
+                    <p className="assessment-value">{buildingAssessment.building_area} sqm</p>
+                  </div>
+                  <div className="assessment-group">
+                    <label className="assessment-label">Market Value per sqm</label>
+                    <p className="assessment-value">{formatCurrency(buildingAssessment.building_value_per_sqm)}</p>
+                  </div>
+                  <div className="assessment-group">
+                    <label className="assessment-label">Assessed Level</label>
+                    <p className="assessment-value">{(buildingAssessment.building_assessed_lvl * 100).toFixed(0)}%</p>
+                  </div>
+                  <div className="assessment-group">
+                    <label className="assessment-label">Assessed Value</label>
+                    <p className="assessment-value highlight">{formatCurrency(buildingAssessment.building_assessed_value)}</p>
+                  </div>
+                  <div className="assessment-group">
+                    <label className="assessment-label">Annual Tax</label>
+                    <p className="assessment-value highlight">{formatCurrency(buildingAssessment.building_total_tax)}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Total Tax Summary */}
+            {totalTax && (
+              <div className="assessment-card total-summary">
+                <h3 className="assessment-subtitle">Tax Summary</h3>
+                <div className="tax-summary-grid">
+                  <div className="tax-summary-item">
+                    <label>Total Assessed Value</label>
+                    <p className="tax-amount">{formatCurrency(totalTax.total_assessed_value)}</p>
+                  </div>
+                  <div className="tax-summary-item">
+                    <label>Total Annual Tax</label>
+                    <p className="tax-amount highlight">{formatCurrency(totalTax.total_tax)}</p>
+                  </div>
+                  <div className="tax-summary-item">
+                    <label>Payment Type</label>
+                    <p className="tax-amount">{totalTax.payment_type}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Quarterly Payments */}
+            {quarterlyPayments.length > 0 && (
+              <div className="assessment-card">
+                <h3 className="assessment-subtitle">Quarterly Payments</h3>
+                <div className="quarterly-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Quarter</th>
+                        <th>Due Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date Paid</th>
+                        <th>OR Number</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {quarterlyPayments.map((payment) => (
+                        <tr key={payment.quarter_id}>
+                          <td>Q{payment.quarter_no}</td>
+                          <td>{new Date(payment.due_date).toLocaleDateString()}</td>
+                          <td>{formatCurrency(payment.tax_amount)}</td>
+                          <td>{getPaymentStatusBadge(payment.status)}</td>
+                          <td>{payment.date_paid ? new Date(payment.date_paid).toLocaleDateString() : 'Not Paid'}</td>
+                          <td>{payment.or_no || 'N/A'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Documents Section */}
         {documents.length > 0 && (
@@ -937,7 +1141,7 @@ export default function RPTDetails() {
                   ))
                 }
               >
-                Complete Assessment & Approve
+                Complete Assessment
               </button>
             </div>
           </div>
