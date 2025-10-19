@@ -23,9 +23,10 @@ try {
     $error_message = "Error fetching applications: " . $e->getMessage();
 }
 
-// Fetch documents for each application
+// Fetch documents and assessment schedules for each application
 if (!empty($applications)) {
     foreach ($applications as &$application) {
+        // Fetch documents
         $stmt = $pdo->prepare("
             SELECT * FROM rpt_documents 
             WHERE application_id = ? 
@@ -33,6 +34,18 @@ if (!empty($applications)) {
         ");
         $stmt->execute([$application['id']]);
         $application['documents'] = $stmt->fetchAll();
+
+        // Fetch assessment schedule if status is for_assessment
+        if ($application['status'] === 'for_assessment') {
+            $stmt = $pdo->prepare("
+                SELECT * FROM rpt_assessment_schedule 
+                WHERE application_id = ? 
+                AND status = 'scheduled'
+                ORDER BY visit_date ASC
+            ");
+            $stmt->execute([$application['id']]);
+            $application['assessment_schedule'] = $stmt->fetch();
+        }
     }
     unset($application); // break the reference
 }
@@ -46,476 +59,7 @@ if (!empty($applications)) {
     <title>My RPT Applications - RPT System</title>
     <link rel="stylesheet" href="../../citizen_portal/navbar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            color: #334155;
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-
-        .rpt-application-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem;
-        }
-
-        /* Header Section */
-        .rpt-application-header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding: 2.5rem;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .rpt-application-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #3b82f6, #10b981, #ef4444);
-        }
-
-        .rpt-application-header h1 {
-            font-size: 2.5rem;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
-        }
-
-        .rpt-application-header h1 i {
-            color: #3b82f6;
-            margin-right: 1rem;
-        }
-
-        .rpt-application-header p {
-            font-size: 1.2rem;
-            color: #64748b;
-            margin-bottom: 2rem;
-        }
-
-        .header-actions {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        /* Button Styles */
-        .btn {
-            padding: 0.9rem 2rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.7rem;
-            border: none;
-            text-decoration: none;
-            text-align: center;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3);
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(100, 116, 139, 0.4);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-        }
-
-        /* Application Cards */
-        .applications-list {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .application-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border-radius: 20px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .application-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
-        }
-
-        .application-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #3b82f6, #10b981);
-        }
-
-        .application-header {
-            padding: 2rem 2rem 1rem;
-            display: flex;
-            justify-content: between;
-            align-items: flex-start;
-            gap: 1.5rem;
-        }
-
-        .application-info {
-            flex: 1;
-        }
-
-        .application-info h3 {
-            font-size: 1.5rem;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
-        }
-
-        .application-meta {
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .application-meta span {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #64748b;
-            font-size: 0.9rem;
-        }
-
-        .application-meta i {
-            color: #3b82f6;
-        }
-
-        .application-status {
-            flex-shrink: 0;
-        }
-
-        .status-badge {
-            padding: 0.5rem 1.2rem;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-pending { background: #fef3c7; color: #d97706; }
-        .status-for_assessment { background: #dbeafe; color: #2563eb; }
-        .status-assessed { background: #dcfce7; color: #16a34a; }
-        .status-approved { background: #dcfce7; color: #16a34a; }
-        .status-rejected { background: #fee2e2; color: #dc2626; }
-        .status-cancelled { background: #f3f4f6; color: #6b7280; }
-
-        /* Content Sections */
-        .application-details,
-        .personal-info-section,
-        .documents-section,
-        .assessment-section {
-            padding: 1.5rem 2rem;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        .application-details h4,
-        .personal-info-section h4,
-        .documents-section h4,
-        .assessment-section h4 {
-            color: #1e293b;
-            margin-bottom: 1.5rem;
-            font-size: 1.2rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .application-details h4 i,
-        .personal-info-section h4 i,
-        .documents-section h4 i,
-        .assessment-section h4 i {
-            color: #3b82f6;
-        }
-
-        /* Grid Layouts */
-        .detail-grid,
-        .info-grid,
-        .assessment-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .detail-item,
-        .info-item,
-        .assessment-item {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .detail-item label,
-        .info-item label,
-        .assessment-item label {
-            font-size: 0.85rem;
-            color: #64748b;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .detail-item span,
-        .info-item span,
-        .assessment-item span {
-            color: #1e293b;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .text-muted {
-            color: #94a3b8 !important;
-            font-style: italic;
-        }
-
-        .assessment-item.highlight {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            padding: 1rem;
-            border-radius: 12px;
-            border-left: 4px solid #3b82f6;
-        }
-
-        .assessment-item.highlight span {
-            color: #1e40af;
-            font-size: 1.1rem;
-        }
-
-        /* Documents Grid */
-        .documents-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1rem;
-        }
-
-        .document-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: #f8fafc;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s ease;
-        }
-
-        .document-item:hover {
-            background: #f1f5f9;
-            transform: translateY(-2px);
-        }
-
-        .document-icon {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
-            border-radius: 10px;
-            color: white;
-            font-size: 1.2rem;
-        }
-
-        .document-info {
-            flex: 1;
-        }
-
-        .document-name {
-            display: block;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 0.25rem;
-        }
-
-        .document-date {
-            font-size: 0.8rem;
-            color: #64748b;
-        }
-
-        /* Document actions removed - view and download buttons are gone */
-
-        /* Application Actions */
-        .application-actions {
-            padding: 1.5rem 2rem;
-            background: #f8fafc;
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        /* Error and Empty States */
-        .error-message {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 12px;
-            padding: 2rem;
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #dc2626;
-        }
-
-        .error-message i {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            display: block;
-        }
-
-        .no-applications {
-            text-align: center;
-            padding: 4rem 2rem;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-        }
-
-        .no-applications-icon {
-            font-size: 4rem;
-            color: #cbd5e1;
-            margin-bottom: 1.5rem;
-        }
-
-        .no-applications h3 {
-            color: #475569;
-            margin-bottom: 1rem;
-        }
-
-        .no-applications p {
-            color: #64748b;
-            margin-bottom: 2rem;
-        }
-
-        .no-documents {
-            text-align: center;
-            color: #94a3b8;
-            font-style: italic;
-            padding: 2rem;
-            background: #f8fafc;
-            border-radius: 12px;
-            border: 2px dashed #e2e8f0;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .rpt-application-container {
-                padding: 1rem;
-            }
-
-            .rpt-application-header {
-                padding: 1.5rem;
-                margin-bottom: 2rem;
-            }
-
-            .rpt-application-header h1 {
-                font-size: 2rem;
-            }
-
-            .application-header {
-                flex-direction: column;
-                gap: 1rem;
-                padding: 1.5rem;
-            }
-
-            .application-meta {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            .detail-grid,
-            .info-grid,
-            .assessment-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .documents-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .application-details,
-            .personal-info-section,
-            .documents-section,
-            .assessment-section {
-                padding: 1rem 1.5rem;
-            }
-
-            .header-actions {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .rpt-application-header h1 {
-                font-size: 1.75rem;
-            }
-
-            .application-info h3 {
-                font-size: 1.25rem;
-            }
-
-            .document-item {
-                flex-direction: column;
-                text-align: center;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="rpt_application.css">
 </head>
 <body>
     <?php include '../../../citizen_portal/navbar.php'; ?>
@@ -555,6 +99,82 @@ if (!empty($applications)) {
         <?php else: ?>
             <div class="applications-list">
                 <?php foreach ($applications as $application): ?>
+                    <!-- Assessment Notification for scheduled visits -->
+                    <?php if ($application['status'] === 'for_assessment' && !empty($application['assessment_schedule'])): ?>
+                        <div class="assessment-notification">
+                            <div class="notification-header">
+                                <div class="notification-icon">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <h3>Property Assessment Scheduled</h3>
+                                    <p>An assessor has been scheduled to visit your property for evaluation.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="assessment-details-grid">
+                                <div class="assessment-detail-item highlight">
+                                    <label>Visit Date:</label>
+                                    <span>
+                                        <i class="fas fa-calendar-day"></i>
+                                        <?php echo date('F j, Y (l)', strtotime($application['assessment_schedule']['visit_date'])); ?>
+                                    </span>
+                                </div>
+                                <div class="assessment-detail-item">
+                                    <label>Assigned Assessor:</label>
+                                    <span>
+                                        <i class="fas fa-user-tie"></i>
+                                        <?php echo htmlspecialchars($application['assessment_schedule']['assessor_name']); ?>
+                                    </span>
+                                </div>
+                                <div class="assessment-detail-item">
+                                    <label>Property Location:</label>
+                                    <span>
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <?php echo htmlspecialchars($application['property_address'] . ', ' . $application['property_barangay']); ?>
+                                    </span>
+                                </div>
+                                <div class="assessment-detail-item">
+                                    <label>Scheduled On:</label>
+                                    <span>
+                                        <i class="fas fa-clock"></i>
+                                        <?php echo date('M j, Y g:i A', strtotime($application['assessment_schedule']['scheduled_at'])); ?>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <?php if (!empty($application['assessment_schedule']['notes'])): ?>
+                                <div class="assessment-detail-item" style="margin-top: 1rem;">
+                                    <label>Additional Notes:</label>
+                                    <span><?php echo htmlspecialchars($application['assessment_schedule']['notes']); ?></span>
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- Urgent notice for upcoming visits (within 2 days) -->
+                            <?php 
+                            $visitDate = new DateTime($application['assessment_schedule']['visit_date']);
+                            $today = new DateTime();
+                            $daysUntilVisit = $today->diff($visitDate)->days;
+                            ?>
+                            <?php if ($daysUntilVisit <= 2 && $visitDate >= $today): ?>
+                                <div class="urgent-notice">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <p>
+                                        <strong>Important:</strong> 
+                                        Please ensure someone is available at the property during the scheduled visit. 
+                                        <?php if ($daysUntilVisit === 0): ?>
+                                            The assessor is visiting <strong>today</strong>.
+                                        <?php elseif ($daysUntilVisit === 1): ?>
+                                            The assessor is visiting <strong>tomorrow</strong>.
+                                        <?php else: ?>
+                                            The assessor is visiting in <strong><?php echo $daysUntilVisit; ?> days</strong>.
+                                        <?php endif; ?>
+                                    </p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
                     <div class="application-card" data-application-id="<?php echo $application['id']; ?>">
                         <div class="application-header">
                             <div class="application-info">
@@ -663,7 +283,6 @@ if (!empty($applications)) {
                                                 <span class="document-name"><?php echo ucfirst(str_replace('_', ' ', $document['document_type'])); ?></span>
                                                 <span class="document-date"><?php echo date('M j, Y g:i A', strtotime($document['uploaded_at'])); ?></span>
                                             </div>
-                                            <!-- View and Download buttons removed -->
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
@@ -751,6 +370,11 @@ if (!empty($applications)) {
                 this.style.transform = 'translateY(0)';
             });
         });
+
+        // Auto-refresh the page every 5 minutes to check for new assessment schedules
+        setTimeout(function() {
+            location.reload();
+        }, 300000); // 5 minutes
     </script>
 </body>
 </html>

@@ -7,9 +7,11 @@ import SecuritySettings from './pages/settings/Security'
 import Header from './components/header/Header'
 import sidebarItems from './components/sidebar/sidebarItems'
 
-import RPTAssess from './pages/RPT/RPTAssess'
-import RPTDetails from './pages/RPT/RPTDetails'
-import RPT2 from './pages/RPT/RPT2'
+
+import RPTAssess from './pages/RPT/RPTAssess/RPTAssess'
+import RPTDetails from './pages/RPT/RPTAssess/RPTDetails'
+
+import RPTDash from './pages/RPT/RPTDash/RPTDash'
 
 import Business1 from './pages/Business/Business1'
 import Business2 from './pages/Business/Business2'
@@ -68,7 +70,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/RPT/RPTAssess" element={<RPTAssess />} />
               <Route path="/RPT/RPTDetails/:id" element={<RPTDetails />} />
-              <Route path="/RPT/RPT2" element={<RPT2 />} />
+              <Route path="/RPT/RPTDash" element={<RPTDash />} />
              
 
               <Route path="/Business/Business1" element={<Business1 />} />

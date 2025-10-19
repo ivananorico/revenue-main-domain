@@ -30,6 +30,228 @@
     margin: 0;
 }
 
+/* Notifications Section */
+.notifications-section {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #3498db;
+}
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.notification-header h3 {
+    color: #2c3e50;
+    font-size: 1.3rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-header h3 i {
+    color: #3498db;
+}
+
+.notification-count {
+    background: #e74c3c;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #3498db;
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    background: #3498db;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-content h4 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.notification-content p {
+    margin: 0 0 10px 0;
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.notification-date {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #e67e22;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Circular Status Summary - SMALL CIRCLES */
+.status-summary {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.status-summary h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #2c3e50;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.timeline-container {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.timeline-line {
+    position: absolute;
+    top: 50%;
+    left: 15%;
+    right: 15%;
+    height: 2px;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.status-cards {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.status-circle {
+    position: relative;
+    width: 80px;  /* Smaller circles */
+    height: 80px; /* Smaller circles */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ecf0f1;
+    border: 3px solid #bdc3c7;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.status-circle.active {
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.status-circle.pending.active {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    border-color: #f39c12;
+}
+
+.status-circle.for_assessment.active {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border-color: #3498db;
+}
+
+.status-circle.assessed.active {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    border-color: #9b59b6;
+}
+
+.status-circle.approved.active {
+    background: linear-gradient(135deg, #27ae60, #229954);
+    border-color: #27ae60;
+}
+
+.circle-content {
+    text-align: center;
+    color: #7f8c8d;
+}
+
+.status-circle.active .circle-content {
+    color: white;
+}
+
+.status-count {
+    display: block;
+    font-size: 1.5rem; /* Smaller font */
+    font-weight: bold;
+    margin-bottom: 2px;
+    line-height: 1;
+}
+
+.status-label {
+    font-size: 0.7rem; /* Smaller font */
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.circle-progress {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 2px solid transparent;
+    border-top-color: #3498db;
+    border-radius: 50%;
+    animation: spin 2s linear infinite;
+    opacity: 0;
+}
+
+.status-circle.active .circle-progress {
+    opacity: 1;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Main Cards Container */
 .rpt-cards-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -162,6 +384,37 @@
         font-size: 1rem;
     }
 
+    .timeline-line {
+        display: none;
+    }
+
+    .status-cards {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .status-circle {
+        width: 70px; /* Even smaller on mobile */
+        height: 70px;
+    }
+
+    .status-count {
+        font-size: 1.3rem;
+    }
+
+    .status-label {
+        font-size: 0.65rem;
+    }
+
+    .notification-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .notification-icon {
+        align-self: center;
+    }
+
     .rpt-cards-container {
         grid-template-columns: 1fr;
         gap: 1.5rem;
@@ -187,6 +440,23 @@
         font-size: 1.8rem;
     }
 
+    .status-summary {
+        padding: 20px;
+    }
+
+    .status-circle {
+        width: 60px; /* Smallest on mobile */
+        height: 60px;
+    }
+
+    .status-count {
+        font-size: 1.1rem;
+    }
+
+    .status-label {
+        font-size: 0.6rem;
+    }
+
     .rpt-card {
         padding: 1.5rem;
     }
@@ -198,5 +468,51 @@
     .card-button {
         padding: 10px 25px;
         font-size: 0.9rem;
+    }
+}
+
+/* Back to Dashboard Button */
+.back-to-dashboard {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.back-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+    text-decoration: none;
+    color: white;
+}
+
+/* Responsive Design for Back Button */
+@media (max-width: 768px) {
+    .back-button {
+        padding: 10px 25px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .back-button {
+        padding: 8px 20px;
+        font-size: 0.85rem;
     }
 }

@@ -10,7 +10,6 @@ require_once '../../../db/RPT/rpt_db.php';
 try {
     $stmt = $pdo->prepare("
         SELECT * FROM rpt_applications 
-        WHERE status = 'pending'
         ORDER BY application_date DESC
     ");
     $stmt->execute();

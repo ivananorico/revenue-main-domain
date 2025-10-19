@@ -18,19 +18,21 @@ export default function RPTDetails() {
     notes: ''
   });
   const [propertyData, setPropertyData] = useState({
-    land_area: '',
-    land_value: '',
-    building_area: '',
-    building_value: '',
-    total_value: '',
-    annual_tax: ''
+    lot_area: '',
+    land_use: 'Residential',
+    location: '',
+    barangay: '',
+    municipality: '',
+    tdn_no: ''
   });
+  const [landUseOptions, setLandUseOptions] = useState([]);
   const { id } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (id) {
       fetchApplicationDetails();
+      fetchLandUseOptions();
     } else {
       setError('No application ID provided');
       setLoading(false);
@@ -50,6 +52,15 @@ export default function RPTDetails() {
       if (data.status === 'success') {
         setApplication(data.data.application);
         setDocuments(data.data.documents || []);
+        
+        // Pre-fill property data from application
+        setPropertyData(prev => ({
+          ...prev,
+          location: data.data.application.property_address,
+          barangay: data.data.application.property_barangay,
+          municipality: data.data.application.property_municipality,
+          tdn_no: `TDN-${new Date().getFullYear()}-${data.data.application.id.toString().padStart(3, '0')}`
+        }));
       } else {
         setError(data.message || 'Failed to fetch application details');
       }
@@ -61,112 +72,123 @@ export default function RPTDetails() {
     }
   };
 
+  const fetchLandUseOptions = async () => {
+    try {
+      const response = await fetch('http://localhost/revenue/backend/RPT/RPTAssess/get-land-use-options.php');
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        setLandUseOptions(data.data);
+      } else {
+        // Fallback options
+        setLandUseOptions([
+          { land_use: 'Residential', market_value_per_sqm: 1500.00, land_assessed_lvl: 0.20 },
+          { land_use: 'Commercial', market_value_per_sqm: 3000.00, land_assessed_lvl: 0.35 },
+          { land_use: 'Industrial', market_value_per_sqm: 2500.00, land_assessed_lvl: 0.40 },
+          { land_use: 'Agricultural', market_value_per_sqm: 800.00, land_assessed_lvl: 0.10 }
+        ]);
+      }
+    } catch (error) {
+      console.error('Error fetching land use options:', error);
+      setLandUseOptions([
+        { land_use: 'Residential', market_value_per_sqm: 1500.00, land_assessed_lvl: 0.20 },
+        { land_use: 'Commercial', market_value_per_sqm: 3000.00, land_assessed_lvl: 0.35 },
+        { land_use: 'Industrial', market_value_per_sqm: 2500.00, land_assessed_lvl: 0.40 },
+        { land_use: 'Agricultural', market_value_per_sqm: 800.00, land_assessed_lvl: 0.10 }
+      ]);
+    }
+  };
+
   const handleBack = () => {
     navigate('/RPT/RPTAssess');
   };
 
-  const handleStatusUpdate = async (newStatus) => {
-    try {
-      const response = await fetch('http://localhost/revenue/backend/RPT/RPTAssess/update-status.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          application_id: id,
-          status: newStatus
-        })
-      });
+ const handlePropertySubmit = async () => {
+  try {
+    console.log('Submitting property data:', propertyData);
+    console.log('Application ID:', id);
 
-      const data = await response.json();
-      
-      if (data.status === 'success') {
-        setApplication(prev => ({ ...prev, status: newStatus }));
-        alert('Status updated successfully!');
-      } else {
-        alert('Failed to update status: ' + data.message);
-      }
-    } catch (error) {
-      console.error('Error updating status:', error);
-      alert('Error updating status');
+    // Validate required fields
+    if (!propertyData.lot_area || !propertyData.land_use) {
+      alert('Please fill in all required fields.');
+      return;
     }
-  };
 
-  const handleAssessmentSubmit = async () => {
-    try {
-      const response = await fetch('http://localhost/revenue/backend/RPT/RPTAssess/save-assessment.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          application_id: id,
-          ...assessmentData
-        })
-      });
-
-      const data = await response.json();
-      
-      if (data.status === 'success') {
-        setApplication(prev => ({ ...prev, status: 'for_assessment' }));
-        setShowAssessmentModal(false);
-        setAssessmentData({ visit_date: '', assessor_name: '', notes: '' });
-        alert('Assessment scheduled successfully!');
-      } else {
-        alert('Failed to schedule assessment: ' + data.message);
+    // Create the payload structure that matches PHP backend expectations
+    const payload = {
+      application_id: parseInt(id),
+      property_data: {
+        lot_area: propertyData.lot_area,
+        land_use: propertyData.land_use,
+        location: propertyData.location,
+        barangay: propertyData.barangay,
+        municipality: propertyData.municipality,
+        tdn_no: propertyData.tdn_no
       }
-    } catch (error) {
-      console.error('Error scheduling assessment:', error);
-      alert('Error scheduling assessment');
-    }
-  };
+    };
 
-  const handlePropertySubmit = async () => {
-    try {
-      const response = await fetch('http://localhost/revenue/backend/RPT/RPTAssess/save-property-assessment.php', {
+    console.log('Payload being sent:', payload);
+
+    const response = await fetch(
+      'http://localhost/revenue/backend/RPT/RPTAssess/save_land_assessment-complete.php',
+      {
         method: 'POST',
-        headers: {
+        headers: { 
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          application_id: id,
-          ...propertyData
-        })
-      });
-
-      const data = await response.json();
-      
-      if (data.status === 'success') {
-        setApplication(prev => ({ ...prev, status: 'assessed' }));
-        setShowPropertyModal(false);
-        setPropertyData({
-          land_area: '',
-          land_value: '',
-          building_area: '',
-          building_value: '',
-          total_value: '',
-          annual_tax: ''
-        });
-        alert('Property assessment saved successfully!');
-      } else {
-        alert('Failed to save property assessment: ' + data.message);
+        body: JSON.stringify(payload)
       }
-    } catch (error) {
-      console.error('Error saving property assessment:', error);
-      alert('Error saving property assessment');
-    }
-  };
+    );
 
-  const calculateTotalValue = () => {
-    const land = parseFloat(propertyData.land_value) || 0;
-    const building = parseFloat(propertyData.building_value) || 0;
-    const total = land + building;
-    const annualTax = total * 0.01;
-    
+    console.log('Response status:', response.status);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const responseText = await response.text();
+    console.log('Raw response:', responseText);
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (err) {
+      console.error('JSON parse error:', err);
+      throw new Error('Invalid JSON response from server: ' + responseText);
+    }
+
+    if (data.status === 'success') {
+      // Use the calculated values from the backend response
+      const calculations = data.data.calculations;
+      alert(
+        `✅ Assessment completed successfully!\n\n` +
+        `Market Value per sqm: ₱${calculations.market_value_per_sqm.toFixed(2)}\n` +
+        `Assessed Value: ₱${calculations.land_assessed_value.toFixed(2)}\n` +
+        `Annual Tax: ₱${calculations.land_total_tax.toFixed(2)}\n` +
+        `Quarterly Tax: ₱${calculations.quarterly_tax.toFixed(2)}`
+      );
+
+      setApplication(prev => ({ ...prev, status: 'assessed' }));
+      setShowPropertyModal(false);
+
+      // Auto approve if property type is land only
+      if (application.property_type === 'land_only') {
+        setTimeout(() => handleStatusUpdate('approved'), 1000);
+      }
+    } else {
+      alert('❌ Failed to save property assessment: ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error saving property assessment:', error);
+    alert('Error saving property assessment: ' + error.message);
+  }
+};
+
+  const handlePropertyDataChange = (field, value) => {
     setPropertyData(prev => ({
       ...prev,
-      total_value: total.toFixed(2),
-      annual_tax: annualTax.toFixed(2)
+      [field]: value
     }));
   };
 
@@ -185,8 +207,6 @@ export default function RPTDetails() {
       
       const fullUrl = `http://localhost${filePath}`;
       
-      // For images, we can display them directly in the modal
-      // For other file types, we'll show a download link
       setDocumentLoading(false);
     } catch (error) {
       console.error('Error loading document:', error);
@@ -215,22 +235,21 @@ export default function RPTDetails() {
   };
 
   const getStatusBadge = (status) => {
-    const statusColors = {
-      pending: 'status-pending',
-      for_assessment: 'status-for-assessment',
-      assessed: 'status-assessed',
-      approved: 'status-approved',
-      rejected: 'status-rejected'
+    const statusClasses = {
+      pending: 'status-badge status-pending',
+      for_assessment: 'status-badge status-for-assessment',
+      assessed: 'status-badge status-assessed',
+      approved: 'status-badge status-approved',
+      rejected: 'status-badge status-rejected'
     };
 
     return (
-      <span className={`status-badge ${statusColors[status] || 'status-pending'}`}>
+      <span className={statusClasses[status] || 'status-badge status-pending'}>
         {status.replace('_', ' ').toUpperCase()}
       </span>
     );
   };
 
-  // Close modal when clicking outside
   const handleOverlayClick = (e, modalType) => {
     if (e.target === e.currentTarget) {
       if (modalType === 'assessment') {
@@ -246,12 +265,12 @@ export default function RPTDetails() {
 
   if (loading) {
     return (
-      <div className='rpt-details-container'>
+      <div className="rpt-details-container">
         <h1 className="details-title">Real Property Owner Details</h1>
-        <div className="loading-pulse">
-          <div className="pulse-line wide"></div>
-          <div className="pulse-line"></div>
-          <div className="pulse-line medium"></div>
+        <div className="loading-skeleton">
+          <div className="skeleton-line skeleton-wide"></div>
+          <div className="skeleton-line"></div>
+          <div className="skeleton-line skeleton-medium"></div>
         </div>
       </div>
     );
@@ -259,15 +278,17 @@ export default function RPTDetails() {
 
   if (error) {
     return (
-      <div className='rpt-details-container'>
+      <div className="rpt-details-container">
         <h1 className="details-title">Real Property Owner Details</h1>
-        <div className="error-message">
-          <div className="error-content">
-            <strong>Error:</strong> {error}
-            <br />
-            <span className="error-id">Application ID: {id}</span>
-          </div>
-          <button onClick={handleBack} className="back-button">
+        <div className="error-container">
+          <div className="error-icon">⚠️</div>
+          <h3 className="error-title">Error Loading Application</h3>
+          <p className="error-message">{error}</p>
+          <p className="error-id">Application ID: {id}</p>
+          <button 
+            onClick={handleBack}
+            className="back-button"
+          >
             ← Back to Applications
           </button>
         </div>
@@ -277,13 +298,15 @@ export default function RPTDetails() {
 
   if (!application) {
     return (
-      <div className='rpt-details-container'>
+      <div className="rpt-details-container">
         <h1 className="details-title">Real Property Owner Details</h1>
-        <div className="error-message">
-          <div className="error-content">
-            Application not found
-          </div>
-          <button onClick={handleBack} className="back-button">
+        <div className="error-container">
+          <div className="error-icon">📄</div>
+          <h3 className="error-title">Application Not Found</h3>
+          <button 
+            onClick={handleBack}
+            className="back-button"
+          >
             ← Back to Applications
           </button>
         </div>
@@ -292,10 +315,13 @@ export default function RPTDetails() {
   }
 
   return (
-    <div className='rpt-details-container'>
+    <div className="rpt-details-container">
       {/* Header */}
       <div className="details-header">
-        <button onClick={handleBack} className="back-button">
+        <button 
+          onClick={handleBack}
+          className="back-button"
+        >
           ← Back to Applications
         </button>
         <div className="header-content">
@@ -313,28 +339,28 @@ export default function RPTDetails() {
           <h2 className="section-title">Applicant Information</h2>
           <div className="info-grid">
             <div className="info-group">
-              <label>Full Name</label>
-              <p>{application.first_name} {application.middle_name} {application.last_name}</p>
+              <label className="info-label">Full Name</label>
+              <p className="info-value">{application.first_name} {application.middle_name} {application.last_name}</p>
             </div>
             <div className="info-group">
-              <label>Gender</label>
-              <p>{application.gender}</p>
+              <label className="info-label">Gender</label>
+              <p className="info-value">{application.gender}</p>
             </div>
             <div className="info-group">
-              <label>Date of Birth</label>
-              <p>{new Date(application.date_of_birth).toLocaleDateString()}</p>
+              <label className="info-label">Date of Birth</label>
+              <p className="info-value">{new Date(application.date_of_birth).toLocaleDateString()}</p>
             </div>
             <div className="info-group">
-              <label>Civil Status</label>
-              <p>{application.civil_status}</p>
+              <label className="info-label">Civil Status</label>
+              <p className="info-value">{application.civil_status}</p>
             </div>
             <div className="info-group">
-              <label>Contact Number</label>
-              <p>{application.contact_number}</p>
+              <label className="info-label">Contact Number</label>
+              <p className="info-value">{application.contact_number}</p>
             </div>
             <div className="info-group">
-              <label>Email</label>
-              <p>{application.email}</p>
+              <label className="info-label">Email</label>
+              <p className="info-value">{application.email}</p>
             </div>
           </div>
         </div>
@@ -344,24 +370,24 @@ export default function RPTDetails() {
           <h2 className="section-title">Address Information</h2>
           <div className="info-grid">
             <div className="info-group">
-              <label>House Number</label>
-              <p>{application.house_number || 'N/A'}</p>
+              <label className="info-label">House Number</label>
+              <p className="info-value">{application.house_number || 'N/A'}</p>
             </div>
             <div className="info-group">
-              <label>Street</label>
-              <p>{application.street || 'N/A'}</p>
+              <label className="info-label">Street</label>
+              <p className="info-value">{application.street || 'N/A'}</p>
             </div>
             <div className="info-group">
-              <label>Barangay</label>
-              <p>{application.barangay}</p>
+              <label className="info-label">Barangay</label>
+              <p className="info-value">{application.barangay}</p>
             </div>
             <div className="info-group">
-              <label>City/Municipality</label>
-              <p>{application.city}</p>
+              <label className="info-label">City/Municipality</label>
+              <p className="info-value">{application.city}</p>
             </div>
             <div className="info-group">
-              <label>ZIP Code</label>
-              <p>{application.zip_code}</p>
+              <label className="info-label">ZIP Code</label>
+              <p className="info-value">{application.zip_code}</p>
             </div>
           </div>
         </div>
@@ -371,35 +397,35 @@ export default function RPTDetails() {
           <h2 className="section-title">Property Information</h2>
           <div className="info-grid">
             <div className="info-group">
-              <label>Application Type</label>
-              <p>{application.application_type.toUpperCase()}</p>
+              <label className="info-label">Application Type</label>
+              <p className="info-value">{application.application_type.toUpperCase()}</p>
             </div>
             <div className="info-group">
-              <label>Property Type</label>
-              <p>{application.property_type.replace('_', ' ').toUpperCase()}</p>
+              <label className="info-label">Property Type</label>
+              <p className="info-value">{application.property_type.replace('_', ' ').toUpperCase()}</p>
             </div>
             <div className="info-group full-width">
-              <label>Property Address</label>
-              <p>{application.property_address}</p>
+              <label className="info-label">Property Address</label>
+              <p className="info-value">{application.property_address}</p>
             </div>
             <div className="info-group">
-              <label>Property Barangay</label>
-              <p>{application.property_barangay}</p>
+              <label className="info-label">Property Barangay</label>
+              <p className="info-value">{application.property_barangay}</p>
             </div>
             <div className="info-group">
-              <label>Property Municipality</label>
-              <p>{application.property_municipality}</p>
+              <label className="info-label">Property Municipality</label>
+              <p className="info-value">{application.property_municipality}</p>
             </div>
             {application.previous_tdn && (
               <div className="info-group">
-                <label>Previous TDN</label>
-                <p>{application.previous_tdn}</p>
+                <label className="info-label">Previous TDN</label>
+                <p className="info-value">{application.previous_tdn}</p>
               </div>
             )}
             {application.previous_owner && (
               <div className="info-group">
-                <label>Previous Owner</label>
-                <p>{application.previous_owner}</p>
+                <label className="info-label">Previous Owner</label>
+                <p className="info-value">{application.previous_owner}</p>
               </div>
             )}
           </div>
@@ -438,21 +464,21 @@ export default function RPTDetails() {
           <div className="action-buttons">
             <button 
               onClick={() => setShowAssessmentModal(true)}
-              className="action-button assessment"
+              className={`action-button assessment ${application.status !== 'pending' ? 'disabled' : ''}`}
               disabled={application.status !== 'pending'}
             >
               Mark for Assessment
             </button>
             <button 
               onClick={() => setShowPropertyModal(true)}
-              className="action-button assessed"
+              className={`action-button assessed ${application.status !== 'for_assessment' ? 'disabled' : ''}`}
               disabled={application.status !== 'for_assessment'}
             >
               Assess Property
             </button>
             <button 
               onClick={() => handleStatusUpdate('approved')}
-              className="action-button approve"
+              className={`action-button approve ${application.status !== 'assessed' ? 'disabled' : ''}`}
               disabled={application.status !== 'assessed'}
             >
               Approve Application
@@ -528,83 +554,94 @@ export default function RPTDetails() {
       {/* Property Assessment Modal */}
       {showPropertyModal && (
         <div className="modal-overlay" onClick={(e) => handleOverlayClick(e, 'property')}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-wide" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Property Assessment Details</h3>
+              <h3>Land Property Assessment</h3>
               <button onClick={() => setShowPropertyModal(false)} className="modal-close">
                 ×
               </button>
             </div>
             <div className="modal-body">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Land Area (sqm) *</label>
-                  <input
-                    type="number"
-                    value={propertyData.land_area}
-                    onChange={(e) => setPropertyData(prev => ({...prev, land_area: e.target.value}))}
-                    placeholder="Enter land area"
-                    className="form-input"
-                  />
+              {/* Basic Property Information */}
+              <div className="form-section">
+                <h4>Property Details</h4>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Location *</label>
+                    <input
+                      type="text"
+                      value={propertyData.location}
+                      onChange={(e) => handlePropertyDataChange('location', e.target.value)}
+                      placeholder="Property location"
+                      className="form-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Barangay *</label>
+                    <input
+                      type="text"
+                      value={propertyData.barangay}
+                      onChange={(e) => handlePropertyDataChange('barangay', e.target.value)}
+                      placeholder="Barangay"
+                      className="form-input"
+                    />
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Land Value (₱) *</label>
-                  <input
-                    type="number"
-                    value={propertyData.land_value}
-                    onChange={(e) => {
-                      setPropertyData(prev => ({...prev, land_value: e.target.value}));
-                      setTimeout(calculateTotalValue, 100);
-                    }}
-                    placeholder="Enter land value"
-                    className="form-input"
-                  />
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Municipality *</label>
+                    <input
+                      type="text"
+                      value={propertyData.municipality}
+                      onChange={(e) => handlePropertyDataChange('municipality', e.target.value)}
+                      placeholder="Municipality"
+                      className="form-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>TDN Number *</label>
+                    <input
+                      type="text"
+                      value={propertyData.tdn_no}
+                      onChange={(e) => handlePropertyDataChange('tdn_no', e.target.value)}
+                      placeholder="Tax Declaration Number"
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Lot Area (sqm) *</label>
+                    <input
+                      type="number"
+                      value={propertyData.lot_area}
+                      onChange={(e) => handlePropertyDataChange('lot_area', e.target.value)}
+                      placeholder="Enter lot area in square meters"
+                      className="form-input"
+                      step="0.01"
+                      min="0"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Land Use *</label>
+                    <select
+                      value={propertyData.land_use}
+                      onChange={(e) => handlePropertyDataChange('land_use', e.target.value)}
+                      className="form-input"
+                    >
+                      <option value="">Select Land Use</option>
+                      {landUseOptions.map(option => (
+                        <option key={option.land_use} value={option.land_use}>
+                          {option.land_use}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Building Area (sqm)</label>
-                  <input
-                    type="number"
-                    value={propertyData.building_area}
-                    onChange={(e) => setPropertyData(prev => ({...prev, building_area: e.target.value}))}
-                    placeholder="Enter building area"
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Building Value (₱)</label>
-                  <input
-                    type="number"
-                    value={propertyData.building_value}
-                    onChange={(e) => {
-                      setPropertyData(prev => ({...prev, building_value: e.target.value}));
-                      setTimeout(calculateTotalValue, 100);
-                    }}
-                    placeholder="Enter building value"
-                    className="form-input"
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Total Property Value (₱)</label>
-                  <input
-                    type="text"
-                    value={propertyData.total_value ? `₱${propertyData.total_value}` : ''}
-                    readOnly
-                    className="form-input readonly"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Annual Tax (₱)</label>
-                  <input
-                    type="text"
-                    value={propertyData.annual_tax ? `₱${propertyData.annual_tax}` : ''}
-                    readOnly
-                    className="form-input readonly"
-                  />
-                </div>
+
+              <div className="calculation-note">
+                <p><strong>Note:</strong> The system will automatically calculate the assessed value and taxes based on the configured rates when you submit.</p>
               </div>
             </div>
             <div className="modal-footer">
@@ -614,9 +651,10 @@ export default function RPTDetails() {
               <button 
                 onClick={handlePropertySubmit}
                 className="btn-primary"
-                disabled={!propertyData.land_area || !propertyData.land_value}
+                disabled={!propertyData.lot_area || !propertyData.land_use || !propertyData.location || 
+                         !propertyData.barangay || !propertyData.municipality || !propertyData.tdn_no}
               >
-                Save Assessment
+                Complete Assessment & Approve
               </button>
             </div>
           </div>
@@ -666,7 +704,7 @@ export default function RPTDetails() {
                             e.target.nextSibling.style.display = 'block';
                           }}
                         />
-                        <div className="fallback-message" style={{display: 'none'}}>
+                        <div className="fallback-message">
                           <p>Unable to load image preview</p>
                           <a 
                             href={getDocumentUrl(selectedDocument)} 
