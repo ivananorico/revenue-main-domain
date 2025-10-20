@@ -44,40 +44,52 @@ export default function RPTConfig() {
   const fetchConfigData = async () => {
     setLoading(true)
     try {
-      const baseURL = '/revenue/backend/RPT/RPTConfig/RPTConfig.php'
+      const baseURL = 'http://localhost/revenue/backend/RPT/RPTConfig/RPTConfig.php'
 
       // Fetch Tax Rates
-      console.log('Fetching tax rates...')
+      console.log('=== FETCHING TAX RATES ===')
       const taxResponse = await fetch(`${baseURL}?action=tax-rates`)
+      console.log('Tax response status:', taxResponse.status)
+      const taxText = await taxResponse.text()
+      console.log('Tax response text:', taxText)
+      
       if (!taxResponse.ok) {
-        const errorText = await taxResponse.text()
-        throw new Error(`HTTP ${taxResponse.status}: ${errorText}`)
+        throw new Error(`HTTP ${taxResponse.status}: ${taxText}`)
       }
-      const taxData = await taxResponse.json()
+      
+      const taxData = JSON.parse(taxText)
       console.log('Tax rates data:', taxData)
       if (taxData.length > 0) {
         setTaxRates(taxData[0])
       }
 
       // Fetch Land Rates
-      console.log('Fetching land rates...')
+      console.log('=== FETCHING LAND RATES ===')
       const landResponse = await fetch(`${baseURL}?action=land-rates`)
+      console.log('Land response status:', landResponse.status)
+      const landText = await landResponse.text()
+      console.log('Land response text:', landText)
+      
       if (!landResponse.ok) {
-        const errorText = await landResponse.text()
-        throw new Error(`HTTP ${landResponse.status}: ${errorText}`)
+        throw new Error(`HTTP ${landResponse.status}: ${landText}`)
       }
-      const landData = await landResponse.json()
+      
+      const landData = JSON.parse(landText)
       console.log('Land rates data:', landData)
       setLandRates(landData)
 
       // Fetch Building Rates
-      console.log('Fetching building rates...')
+      console.log('=== FETCHING BUILDING RATES ===')
       const buildingResponse = await fetch(`${baseURL}?action=building-rates`)
+      console.log('Building response status:', buildingResponse.status)
+      const buildingText = await buildingResponse.text()
+      console.log('Building response text:', buildingText)
+      
       if (!buildingResponse.ok) {
-        const errorText = await buildingResponse.text()
-        throw new Error(`HTTP ${buildingResponse.status}: ${errorText}`)
+        throw new Error(`HTTP ${buildingResponse.status}: ${buildingText}`)
       }
-      const buildingData = await buildingResponse.json()
+      
+      const buildingData = JSON.parse(buildingText)
       console.log('Building rates data:', buildingData)
       setBuildingRates(buildingData)
 
@@ -96,7 +108,7 @@ export default function RPTConfig() {
     e.preventDefault()
     setLoading(true)
     try {
-      const response = await fetch('/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=tax-rates', {
+      const response = await fetch('http://localhost/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=tax-rates', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +138,7 @@ export default function RPTConfig() {
     e.preventDefault()
     setLoading(true)
     try {
-      const response = await fetch('/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=land-rates', {
+      const response = await fetch('http://localhost/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=land-rates', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -155,7 +167,7 @@ export default function RPTConfig() {
     e.preventDefault()
     setLoading(true)
     try {
-      const response = await fetch('/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=land-rates', {
+      const response = await fetch('http://localhost/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=land-rates', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -186,7 +198,7 @@ export default function RPTConfig() {
     
     setLoading(true)
     try {
-      const response = await fetch('/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=land-rates', {
+      const response = await fetch('http://localhost/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=land-rates', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -214,7 +226,7 @@ export default function RPTConfig() {
     e.preventDefault()
     setLoading(true)
     try {
-      const response = await fetch('/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=building-rates', {
+      const response = await fetch('http://localhost/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=building-rates', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -248,7 +260,7 @@ export default function RPTConfig() {
     e.preventDefault()
     setLoading(true)
     try {
-      const response = await fetch('/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=building-rates', {
+      const response = await fetch('http://localhost/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=building-rates', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -279,7 +291,7 @@ export default function RPTConfig() {
     
     setLoading(true)
     try {
-      const response = await fetch('/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=building-rates', {
+      const response = await fetch('http://localhost/revenue/backend/RPT/RPTConfig/RPTConfig.php?action=building-rates', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

@@ -215,7 +215,7 @@ if (!empty($applications)) {
                 </div>
                 <h3>No Applications Found</h3>
                 <p>You haven't submitted any RPT applications yet.</p>
-                <a href="register_rpt.php" class="btn btn-primary">
+                <a href="../rpt_dashboard.php" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Register Property
                 </a>
             </div>

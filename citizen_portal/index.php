@@ -381,25 +381,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'])) {
                     <div class="g-recaptcha" data-sitekey="6Lcyyu0rAAAAAE_0v046KXuaNllw1Z_Wk_HsrHqG"></div>
                 </div>
 
-                <div class="space-y-2">
-                    <div class="flex items-center text-sm">
+                <div class="space-y-2 text-center">
+                    <div class="flex items-center text-sm justify-center">
                         <label class="inline-flex items-center">
                             <input type="checkbox" id="agreeTerms" class="mr-2" required>
                             <span>I have read, understood, and agreed to the</span>
                         </label>
                         <button type="button" id="openTerms" class="ml-2 text-custom-secondary hover:underline">Terms of Use</button>
                     </div>
-                    <div class="flex items-center text-sm">
+                    <div class="flex items-center text-sm justify-center">
                         <label class="inline-flex items-center">
                             <input type="checkbox" id="agreePrivacy" class="mr-2" required>
                             <span>I have read, understood, and agreed to the</span>
                         </label>
                         <button type="button" id="openPrivacy" class="ml-2 text-custom-secondary hover:underline">Data Privacy Policy</button>
                     </div>
-                    <p class="text-xs text-gray-600">By clicking on the register button below, I hereby agree to both the Terms of Use and Data Privacy Policy</p>
+                    <p class="text-xs text-gray-600 text-center">By clicking on the register button below, I hereby agree to both the Terms of Use and Data Privacy Policy</p>
                 </div>
 
-                <div class="flex justify-end space-x-3 pt-2">
+                <div class="flex justify-center space-x-3 pt-2">
                     <button type="button" id="cancelRegister" class="bg-red-500 text-white px-4 py-2 rounded-lg">Cancel</button>
                     <button type="submit" class="bg-custom-secondary text-white px-4 py-2 rounded-lg">Register</button>
                 </div>
@@ -424,13 +424,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'])) {
                         <input type="text" class="otp-input" inputmode="numeric" maxlength="1" aria-label="Digit 6">
                     </div>
                 </div>
-                <div id="otpError" class="text-red-500 text-sm hidden">Invalid or expired OTP.</div>
-                <div class="flex justify-between items-center">
+                <div id="otpError" class="text-red-500 text-sm hidden text-center">Invalid or expired OTP.</div>
+                <div class="flex justify-center space-x-3 pt-2">
                     <button type="button" id="cancelOtp" class="px-4 py-2 rounded-lg bg-red-500 text-white">Cancel</button>
-                    <div class="space-x-2">
-                        <button type="button" id="resendOtp" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-800" disabled>Resend OTP</button>
-                        <button type="submit" id="submitOtp" class="px-4 py-2 rounded-lg bg-custom-secondary text-white">Verify</button>
-                    </div>
+                    <button type="button" id="resendOtp" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-800" disabled>Resend OTP</button>
+                    <button type="submit" id="submitOtp" class="px-4 py-2 rounded-lg bg-custom-secondary text-white">Verify</button>
                 </div>
             </form>
         </div>
@@ -439,16 +437,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'])) {
     <!-- Terms of Service Modal -->
     <div id="termsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-                <h3 class="text-lg font-semibold">GoServePH Terms of Service Agreement</h3>
-                <button type="button" id="closeTerms" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+            <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-center">
+                <h3 class="text-lg font-semibold text-center">GoServePH Terms of Service Agreement</h3>
+                <button type="button" id="closeTerms" class="absolute right-4 text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
             </div>
-            <div class="px-6 py-4 space-y-4 text-sm leading-6">
+            <div class="px-6 py-4 space-y-4 text-sm leading-6 text-center">
                 <p><strong>Welcome to GoServePH!</strong></p>
-                <p>This GoServePH Services Agreement ("Agreement") is a binding legal contract for the use of our software systems—which handle data input, monitoring, processing, and analytics—("Services") between GoServePH ("us," "our," or "we") and you, the registered user ("you" or "user").</p>
-                <!-- Terms content truncated for brevity -->
+                <p class="text-justify">This GoServePH Services Agreement ("Agreement") is a binding legal contract for the use of our software systems—which handle data input, monitoring, processing, and analytics—("Services") between GoServePH ("us," "our," or "we") and you, the registered user ("you" or "user").</p>
+                <p class="text-justify">By registering for and using our Services, you agree to be bound by the terms of this Agreement. If you are entering into this Agreement on behalf of a company or other legal entity, you represent that you have the authority to bind such entity to these terms.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">1. Account Registration and Security</h4>
+                <p class="text-justify">You must provide accurate, current, and complete information during the registration process and keep your account information updated. You are responsible for safeguarding your password and for all activities that occur under your account.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">2. Acceptable Use</h4>
+                <p class="text-justify">You agree not to misuse the Services or help anyone else to do so. You must not attempt to access, tamper with, or use non-public areas of the Services, our systems, or our technical providers' systems.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">3. Data Privacy</h4>
+                <p class="text-justify">We care about the privacy of our users. Our Data Privacy Policy explains how we collect, use, and protect your personal information. By using our Services, you agree that we can use such data in accordance with our privacy policy.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">4. Service Modifications</h4>
+                <p class="text-justify">We may change, suspend, or discontinue the Services, or any part of them, at any time without notice. We may also impose limits on certain features and services or restrict your access to parts or all of the Services without liability.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">5. Termination</h4>
+                <p class="text-justify">You can stop using our Services at any time. We may terminate or suspend your access to the Services immediately, without prior notice, for conduct that we believe violates this Agreement or is harmful to other users, us, or third parties, or for any other reason.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">6. Disclaimer of Warranties</h4>
+                <p class="text-justify">The Services are provided "as is" without any warranties, express or implied. We do not warrant that the Services will be uninterrupted, timely, secure, or error-free.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">7. Limitation of Liability</h4>
+                <p class="text-justify">To the fullest extent permitted by law, in no event will GoServePH be liable for any indirect, special, incidental, punitive, exemplary, or consequential damages arising out of or in connection with the Services.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">8. Governing Law</h4>
+                <p class="text-justify">This Agreement shall be governed by and construed in accordance with the laws of the Republic of the Philippines, without regard to its conflict of law provisions.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">9. Changes to Terms</h4>
+                <p class="text-justify">We may modify this Agreement from time to time. If we make changes, we will provide notice by posting the updated terms and updating the "Last Updated" date. Your continued use of the Services after any modification constitutes your acceptance of the modified terms.</p>
+                
+                <p class="text-justify mt-4"><strong>Last Updated:</strong> January 2024</p>
             </div>
-            <div class="border-t px-6 py-3 flex justify-end">
+            <div class="border-t px-6 py-3 flex justify-center">
                 <button type="button" id="closeTermsBottom" class="px-4 py-2 rounded-lg bg-custom-secondary text-white">Close</button>
             </div>
         </div>
@@ -457,15 +484,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'])) {
     <!-- Privacy Policy Modal -->
     <div id="privacyModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-                <h3 class="text-lg font-semibold">GoServePH Data Privacy Policy</h3>
-                <button type="button" id="closePrivacy" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+            <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-center">
+                <h3 class="text-lg font-semibold text-center">GoServePH Data Privacy Policy</h3>
+                <button type="button" id="closePrivacy" class="absolute right-4 text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
             </div>
-            <div class="px-6 py-4 space-y-4 text-sm leading-6">
+            <div class="px-6 py-4 space-y-4 text-sm leading-6 text-center">
                 <p><strong>Protecting the information you and your users handle through our system is our highest priority.</strong> This policy outlines how GoServePH manages, secures, and uses your data.</p>
-                <!-- Privacy policy content truncated for brevity -->
+                
+                <h4 class="font-semibold mt-4 text-left">1. Information We Collect</h4>
+                <p class="text-justify">We collect information you provide directly to us, including:</p>
+                <ul class="list-disc list-inside text-justify ml-4">
+                    <li>Personal identification information (name, email address, phone number, etc.)</li>
+                    <li>Demographic information (birthdate, address, etc.)</li>
+                    <li>Account credentials</li>
+                    <li>Service usage data</li>
+                </ul>
+                
+                <h4 class="font-semibold mt-4 text-left">2. How We Use Your Information</h4>
+                <p class="text-justify">We use the information we collect to:</p>
+                <ul class="list-disc list-inside text-justify ml-4">
+                    <li>Provide, maintain, and improve our Services</li>
+                    <li>Process transactions and send related information</li>
+                    <li>Send administrative messages, responses to comments and questions, and customer support</li>
+                    <li>Communicate about products, services, offers, and events</li>
+                    <li>Monitor and analyze trends, usage, and activities</li>
+                    <li>Detect, prevent, and address technical issues and fraudulent or illegal activities</li>
+                </ul>
+                
+                <h4 class="font-semibold mt-4 text-left">3. Information Sharing</h4>
+                <p class="text-justify">We do not sell, trade, or otherwise transfer your personally identifiable information to outside parties except in the following circumstances:</p>
+                <ul class="list-disc list-inside text-justify ml-4">
+                    <li>With your consent</li>
+                    <li>To comply with legal obligations</li>
+                    <li>To protect and defend our rights and property</li>
+                    <li>With service providers who assist in operating our Services (subject to confidentiality agreements)</li>
+                </ul>
+                
+                <h4 class="font-semibold mt-4 text-left">4. Data Security</h4>
+                <p class="text-justify">We implement appropriate technical and organizational security measures designed to protect your personal information. However, no method of transmission over the Internet or electronic storage is 100% secure, so we cannot guarantee absolute security.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">5. Data Retention</h4>
+                <p class="text-justify">We retain personal information for as long as necessary to fulfill the purposes outlined in this policy, unless a longer retention period is required or permitted by law.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">6. Your Rights</h4>
+                <p class="text-justify">You have the right to:</p>
+                <ul class="list-disc list-inside text-justify ml-4">
+                    <li>Access and receive a copy of your personal information</li>
+                    <li>Rectify or update your personal information</li>
+                    <li>Delete your personal information</li>
+                    <li>Restrict or object to our processing of your personal information</li>
+                    <li>Data portability</li>
+                </ul>
+                
+                <h4 class="font-semibold mt-4 text-left">7. Cookies and Tracking</h4>
+                <p class="text-justify">We use cookies and similar tracking technologies to track activity on our Services and hold certain information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">8. Children's Privacy</h4>
+                <p class="text-justify">Our Services are not intended for individuals under the age of 18. We do not knowingly collect personal information from children under 18.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">9. Changes to This Policy</h4>
+                <p class="text-justify">We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last Updated" date.</p>
+                
+                <h4 class="font-semibold mt-4 text-left">10. Contact Us</h4>
+                <p class="text-justify">If you have any questions about this Privacy Policy, please contact us at:</p>
+                <p class="text-justify">Email: privacy@goserveph.gov.ph<br>
+                Address: Data Privacy Office, GoServePH Headquarters, Manila, Philippines</p>
+                
+                <p class="text-justify mt-4"><strong>Last Updated:</strong> January 2024</p>
             </div>
-            <div class="border-t px-6 py-3 flex justify-end">
+            <div class="border-t px-6 py-3 flex justify-center">
                 <button type="button" id="closePrivacyBottom" class="px-4 py-2 rounded-lg bg-custom-secondary text-white">Close</button>
             </div>
         </div>

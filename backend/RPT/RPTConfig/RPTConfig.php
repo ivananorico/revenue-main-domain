@@ -1,7 +1,20 @@
 <?php
 // revenue/backend/RPT/RPTConfig/RPTConfig.php
 header('Content-Type: application/json');
-require_once '../../../db/RPT/rpt_db.php';
+
+// Add error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Try to include the database file with better error handling
+$dbPath = __DIR__ . '/../../../db/RPT/rpt_db.php';
+if (!file_exists($dbPath)) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Database file not found: ' . $dbPath]);
+    exit;
+}
+
+require_once $dbPath;
 
 // Enable CORS
 header('Access-Control-Allow-Origin: *');
@@ -13,25 +26,64 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit(0);
 }
 
+// Test database connection
+try {
+    $pdo->query("SELECT 1");
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
+    exit;
+}
+
 // Get the request method and action from query parameter
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
+// Debug output
+error_log("RPT Config - Method: $method, Action: $action");
+
 try {
+    // Test database connection and table existence
+    $testStmt = $pdo->query("SHOW TABLES LIKE 'land_rate_config'");
+    $landTableExists = $testStmt->rowCount() > 0;
+    
+    $testStmt = $pdo->query("SHOW TABLES LIKE 'building_rate_config'");
+    $buildingTableExists = $testStmt->rowCount() > 0;
+    
+    $testStmt = $pdo->query("SHOW TABLES LIKE 'tax_rate_config'");
+    $taxTableExists = $testStmt->rowCount() > 0;
+    
+    error_log("Tables exist - Tax: " . ($taxTableExists ? 'yes' : 'no') . ", Land: " . ($landTableExists ? 'yes' : 'no') . ", Building: " . ($buildingTableExists ? 'yes' : 'no'));
+
     // Route the request based on action parameter
     switch ($action) {
         case 'tax-rates':
+            if (!$taxTableExists) {
+                http_response_code(500);
+                echo json_encode(['error' => 'tax_rate_config table does not exist']);
+                break;
+            }
             handleTaxRates($method);
             break;
         case 'land-rates':
+            if (!$landTableExists) {
+                http_response_code(500);
+                echo json_encode(['error' => 'land_rate_config table does not exist']);
+                break;
+            }
             handleLandRates($method);
             break;
         case 'building-rates':
+            if (!$buildingTableExists) {
+                http_response_code(500);
+                echo json_encode(['error' => 'building_rate_config table does not exist']);
+                break;
+            }
             handleBuildingRates($method);
             break;
         default:
             http_response_code(404);
-            echo json_encode(['error' => 'Action not found. Use ?action=tax-rates, land-rates, or building-rates']);
+            echo json_encode(['error' => 'Action not found. Use ?action=tax-rates, land-rates, or building-rates', 'received_action' => $action]);
             break;
     }
 } catch (Exception $e) {
@@ -73,7 +125,10 @@ function handleTaxRates($method) {
             $stmt->execute([$tax_rate, $sef_rate, $tax_rate_id]);
             
             if ($stmt->rowCount() > 0) {
-                echo json_encode(['message' => 'Tax rates updated successfully']);
+                // Return updated data
+                $stmt = $pdo->query("SELECT * FROM tax_rate_config ORDER BY tax_rate_id DESC");
+                $updatedRates = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode(['message' => 'Tax rates updated successfully', 'data' => $updatedRates]);
             } else {
                 http_response_code(404);
                 echo json_encode(['error' => 'Tax rate configuration not found']);
