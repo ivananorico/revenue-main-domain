@@ -708,6 +708,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'])) {
         // Function to show login form (used after successful registration)
         function showLoginForm() {
             document.getElementById('registerFormContainer').classList.add('hidden');
+            dss
         }
     </script>
 </body>
