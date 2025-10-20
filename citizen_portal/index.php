@@ -34,6 +34,76 @@ function verifyRecaptcha($recaptcha_response) {
     return $json && $json->success;
 }
 
+// Handle Registration
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_form'])) {
+    // Get form data
+    $firstName = trim($_POST['firstName']);
+    $lastName = trim($_POST['lastName']);
+    $middleName = isset($_POST['middleName']) ? trim($_POST['middleName']) : '';
+    $suffix = isset($_POST['suffix']) ? trim($_POST['suffix']) : '';
+    $birthdate = $_POST['birthdate'];
+    $email = trim($_POST['register_email']);
+    $mobile = trim($_POST['mobile']);
+    $address = trim($_POST['address']);
+    $houseNumber = trim($_POST['houseNumber']);
+    $street = trim($_POST['street']);
+    $barangay = trim($_POST['barangay']);
+    $password = $_POST['register_password'];
+    $confirmPassword = $_POST['confirmPassword'];
+    $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
+
+    // Verify reCAPTCHA first
+    if (!verifyRecaptcha($recaptcha_response)) {
+        $register_message = "reCAPTCHA verification failed. Please try again.";
+    } else {
+        // Validate required fields
+        if (empty($firstName) || empty($lastName) || empty($birthdate) || empty($email) || 
+            empty($mobile) || empty($address) || empty($barangay) || empty($password)) {
+            $register_message = "All required fields must be filled out.";
+        } 
+        // Check if passwords match
+        elseif ($password !== $confirmPassword) {
+            $register_message = "Passwords do not match!";
+        }
+        // Check password strength
+        elseif (strlen($password) < 10) {
+            $register_message = "Password must be at least 10 characters long.";
+        }
+        // Check if email already exists
+        else {
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            if ($stmt->fetch()) {
+                $register_message = "Email already exists! Please use a different email.";
+            } else {
+                // Construct full name
+                $fullName = $firstName . ' ' . $lastName;
+                if (!empty($middleName)) {
+                    $fullName = $firstName . ' ' . $middleName . ' ' . $lastName;
+                }
+                if (!empty($suffix)) {
+                    $fullName .= ' ' . $suffix;
+                }
+
+                // Hash password
+                $password_hash = password_hash($password, PASSWORD_DEFAULT);
+
+                // Insert into database
+                try {
+                    $stmt = $pdo->prepare("INSERT INTO users (full_name, email, password_hash, created_at) VALUES (?, ?, ?, NOW())");
+                    $stmt->execute([$fullName, $email, $password_hash]);
+                    
+                    $register_message = "successful: Registration successful! You can now login.";
+                    // Clear form data after successful registration
+                    echo "<script>document.addEventListener('DOMContentLoaded', function() { showLoginForm(); });</script>";
+                } catch (PDOException $e) {
+                    $register_message = "Registration failed: " . $e->getMessage();
+                }
+            }
+        }
+    }
+}
+
 // Handle Login
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'])) {
     $email = trim($_POST['login_email']);
@@ -45,12 +115,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'])) {
         $login_message = "reCAPTCHA verification failed. Please try again.";
     } else {
         // Hardcoded admin login
-       // Admin login: redirect directly, no session
-if ($email === $admin_email && $password === $admin_password) {
-    header('Location: /revenue/dist'); // admin page
-    exit;
-}
-
+        if ($email === $admin_email && $password === $admin_password) {
+            header('Location: /revenue/dist'); // admin page
+            exit;
+        }
 
         // Regular user login
         $stmt = $pdo->prepare("SELECT * FROM users WHERE email=?");
@@ -69,7 +137,6 @@ if ($email === $admin_email && $password === $admin_password) {
         }
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -231,7 +298,7 @@ if ($email === $admin_email && $password === $admin_password) {
                 
                 <?php if ($register_message): ?>
                     <div class="bg-<?= strpos($register_message, 'successful') !== false ? 'green' : 'red' ?>-100 border border-<?= strpos($register_message, 'successful') !== false ? 'green' : 'red' ?>-400 text-<?= strpos($register_message, 'successful') !== false ? 'green' : 'red' ?>-700 px-4 py-3 rounded">
-                        <?= $register_message ?>
+                        <?= str_replace('successful:', '', $register_message) ?>
                     </div>
                 <?php endif; ?>
                 

@@ -14,8 +14,8 @@ const sidebarItems = [
     subItems: [
        {
         id: "submodule1",
-        label: "Real Property Dashboard",
-        path: "/RPT/RPTDash"
+        label: "Real Property Tax Configurations",
+        path: "/RPT/RPTConfig"
       },
 
       {

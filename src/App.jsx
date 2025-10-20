@@ -8,10 +8,11 @@ import Header from './components/header/Header'
 import sidebarItems from './components/sidebar/sidebarItems'
 
 
+import RPTConfig from './pages/RPT/RPTConfig/RPTConfig'
+
 import RPTAssess from './pages/RPT/RPTAssess/RPTAssess'
 import RPTDetails from './pages/RPT/RPTAssess/RPTDetails'
 
-import RPTDash from './pages/RPT/RPTDash/RPTDash'
 
 import Business1 from './pages/Business/Business1'
 import Business2 from './pages/Business/Business2'
@@ -68,9 +69,9 @@ function App() {
           <main className="flex-1 overflow-auto p-8 dark:bg-slate-800">
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/RPT/RPTConfig" element={<RPTConfig />} />
               <Route path="/RPT/RPTAssess" element={<RPTAssess />} />
               <Route path="/RPT/RPTDetails/:id" element={<RPTDetails />} />
-              <Route path="/RPT/RPTDash" element={<RPTDash />} />
              
 
               <Route path="/Business/Business1" element={<Business1 />} />

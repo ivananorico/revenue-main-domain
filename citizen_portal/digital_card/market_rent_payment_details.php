@@ -422,7 +422,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Back Button -->
             <div class="text-center mt-8">
-                <a href="../market_card/payment_rent.php?application_id=<?= $application_id ?>" 
+                <a href="../market_card/pay_rent/pay_rent.php?application_id=<?= $application_id ?>" 
                    class="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-semibold">
                     ← Back to Rent Payments
                 </a>
